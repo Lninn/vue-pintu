@@ -1,0 +1,22 @@
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+#app {
+  position: relative;
+  height: 100%;
+}
+
+.Item {
+  position: absolute;
+}
+
+.Item:hover {
+  opacity: 0.85;
+  cursor: grab;
+}
