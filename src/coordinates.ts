@@ -1,10 +1,7 @@
 import { mouseDownInRect } from "./app";
-import { CANVAS_SCLAE } from "./constant";
+import { RECT_HEIGHT, RECT_WIDTH } from "./constant";
 import { Pintu } from "./pintu";
 import { InnerRect, Position } from "./type";
-
-const RECT_WIDTH = 200 * CANVAS_SCLAE;
-const RECT_HEIGHT = 200 * CANVAS_SCLAE;
 
 export class Coordinates {
   mouse: Position;

@@ -1,5 +1,5 @@
 import {  mouseDownInRect } from "./app";
-import { CANVAS_SCLAE } from "./constant";
+import { ROW_COUNT, COL_COUNT, RECT_WIDTH, RECT_HEIGHT } from "./constant";
 import { Coordinates } from "./coordinates";
 import { Position, Rect, InnerRect } from "./type";
 
@@ -21,11 +21,6 @@ function shuffleArray(array: any[]) {
   }
 }
 
-
-const ROW_COUNT = 3;
-const COL_COUNT = 3;
-const RECT_WIDTH = 200 * CANVAS_SCLAE;
-const RECT_HEIGHT = 200 * CANVAS_SCLAE;
 
 type Payload = number | Position;
 class PintuMap {
