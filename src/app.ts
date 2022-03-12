@@ -92,8 +92,8 @@ class Coordinates {
 
 const ROW_COUNT = 3;
 const COL_COUNT = 3;
-const RECT_WIDTH = 200;
-const RECT_HEIGHT = 200;
+const RECT_WIDTH = 150;
+const RECT_HEIGHT = 150;
 
 interface State {
   rects: Rect[];
@@ -169,6 +169,11 @@ class Pintu {
         return;
       }
     }
+
+    if (this.state.moveRect) {
+      this.state.moveRect.tag = 0;
+      this.state.moveRect = undefined;
+    }
   }
 
   resetRects() {
@@ -177,6 +182,52 @@ class Pintu {
       const [rect] = this.state.rects.splice(topRectIndex, 1);
       this.state.rects.push(rect);
     }
+  }
+
+  getNextRect(key: string) {
+    if (!this.state.targetRect) return;
+
+    const point = {
+      x: this.state.targetRect.x / RECT_WIDTH,
+      y: this.state.targetRect.y / RECT_HEIGHT,
+    };
+
+    switch (key) {
+      case "w":
+        point.y -= 1;
+        break;
+      case "d":
+        point.x += 1;
+        break;
+      case "s":
+        point.y += 1;
+        break;
+      case "a":
+        point.x -= 1;
+        break;
+    }
+
+    if (!this.state.moveRect || !this.state.recoverRect) return;
+
+    this.state.moveRect.x = point.x * RECT_WIDTH;
+    this.state.moveRect.y = point.y * RECT_HEIGHT;
+    this.state.recoverRect.x = point.x * RECT_WIDTH;
+    this.state.recoverRect.y = point.y * RECT_HEIGHT;
+
+    this.move();
+  }
+
+  move() {
+    if (!this.state.moveRect) return;
+
+    mergeRectPosition(this.state.moveRect, this.state.targetRect!);
+    this.state.targetRect = this.state.recoverRect;
+  }
+
+  recover() {
+    if (!this.state.moveRect) return;
+
+    mergeRectPosition(this.state.moveRect, this.state.recoverRect!);
   }
 }
 
@@ -217,16 +268,6 @@ const renderCanvas = () => {
   const coordinates = new Coordinates(canvas);
   const player = new Pintu(coordinates);
 
-  // const mouse: any = {
-  //   x: 0,
-  //   y: 0, // coordinates
-  // };
-  // const mouseDown = {
-  //   x: 0,
-  //   y: 0,
-  // };
-  // let hasMouseDown: boolean = false;
-
   const handleMouseDown = (event: MouseEvent) => {
     coordinates.updateMouse(event);
 
@@ -252,10 +293,9 @@ const renderCanvas = () => {
 
     if (player.state.moveRect) {
       if (status) {
-        mergeRectPosition(player.state.moveRect, player.state.targetRect!);
-        player.state.targetRect = player.state.recoverRect;
+        player.move();
       } else {
-        mergeRectPosition(player.state.moveRect, player.state.recoverRect!);
+        player.recover();
       }
     }
   };
@@ -263,6 +303,11 @@ const renderCanvas = () => {
   document.addEventListener("mousedown", handleMouseDown);
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", handleMouseUp);
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    player.getNextRect(event.key);
+  };
+  document.addEventListener("keydown", handleKeyDown);
 
   function mainLoop() {
     // clear the canvas
@@ -287,7 +332,7 @@ const renderCanvas = () => {
     ctx.fillStyle = rect.color;
     ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = "#ffffff";
 
     const fontSize = 50;
     ctx.font = `${fontSize}px Arial`;
