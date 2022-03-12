@@ -310,10 +310,6 @@ const mouseDownInRect = (
   );
 };
 
-const mergeRectPosition = (rect1: Rect, rect2: Rect) => {
-  // rect1.x = rect2.x;
-  // rect1.y = rect2.y;
-};
 
 const renderCanvas = () => {
   const container = document.querySelector("#app");
