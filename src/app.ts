@@ -1,3 +1,35 @@
+function getRandomColor() {
+  var letters = "0123456789ABCDEF";
+  var color = "#";
+  for (var i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function shuffleRects(rects: Rect[]) {
+  const array = Array.from(
+    {
+      length: ROW_COUNT * COL_COUNT,
+    },
+    (_, idx) => idx
+  );
+
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+
+    var temp = { ...rects[i] };
+
+    rects[i].x = rects[j].x;
+    rects[i].y = rects[j].y;
+
+    rects[j].x = temp.x;
+    rects[j].y = temp.y;
+  }
+
+  return array;
+}
+
 type Tag = 0 | 1;
 
 interface Rect {
@@ -8,6 +40,144 @@ interface Rect {
   height: number;
   color: string;
   tag: Tag;
+}
+
+type Position = { x: number; y: number };
+
+class Coordinates {
+  mouse: Position;
+  mouseDown: Position;
+  hasMouseDown: boolean;
+
+  canvas: HTMLCanvasElement;
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+
+    this.mouse = {
+      x: 0,
+      y: 0,
+    };
+    this.mouseDown = {
+      x: 0,
+      y: 0,
+    };
+    this.hasMouseDown = false;
+  }
+
+  updateMouse(event: MouseEvent) {
+    const bounds = this.canvas.getBoundingClientRect();
+    // get the mouse coordinates, subtract the canvas top left and any scrolling
+    this.mouse.x = event.pageX - bounds.left - scrollX;
+    this.mouse.y = event.pageY - bounds.top - scrollY;
+
+    this.mouse.x /= bounds.width;
+    this.mouse.y /= bounds.height;
+
+    // then scale to canvas coordinates by multiplying the normalized coords with the canvas resolution
+
+    this.mouse.x *= this.canvas.width;
+    this.mouse.y *= this.canvas.height;
+  }
+
+  handleMouseDown(moveRect: Rect) {
+    this.mouseDown.x = this.mouse.x - moveRect.x;
+    this.mouseDown.y = this.mouse.y - moveRect.y;
+
+    this.hasMouseDown = true;
+  }
+}
+
+// Pintu
+
+const ROW_COUNT = 3;
+const COL_COUNT = 3;
+const RECT_WIDTH = 200;
+const RECT_HEIGHT = 200;
+
+interface State {
+  rects: Rect[];
+
+  moveRect?: Rect;
+  recoverRect?: Rect;
+
+  targetRect?: Rect;
+}
+
+const INIT_STATE: State = {
+  rects: [],
+
+  moveRect: undefined,
+  recoverRect: undefined,
+
+  targetRect: undefined,
+};
+
+class Pintu {
+  state: State = INIT_STATE;
+  coordinates: Coordinates;
+
+  constructor(coordinates: Coordinates) {
+    this.coordinates = coordinates;
+
+    this.initial();
+  }
+
+  updateState(newState: State) {
+    this.state = newState;
+  }
+
+  initial() {
+    const rects: Rect[] = [];
+
+    for (let i = 0; i < ROW_COUNT; i++) {
+      for (let j = 0; j < COL_COUNT; j++) {
+        const color = getRandomColor();
+
+        const rect: Rect = {
+          id: `${i}-${j}`,
+          x: j * RECT_WIDTH,
+          y: i * RECT_HEIGHT,
+          width: RECT_WIDTH,
+          height: RECT_HEIGHT,
+          color,
+          tag: 0,
+        };
+
+        rects.push(rect);
+      }
+    }
+
+    shuffleRects(rects);
+
+    const targetRect = rects.shift() as Rect;
+
+    this.updateState({
+      rects,
+
+      targetRect,
+    });
+  }
+
+  findRect() {
+    for (const rect of this.state.rects) {
+      if (mouseDownInRect(rect, this.coordinates.mouse)) {
+        this.state.moveRect = rect;
+        this.state.moveRect.tag = 1;
+
+        this.state.recoverRect = { ...rect };
+        return;
+      }
+    }
+  }
+
+  resetRects() {
+    const topRectIndex = this.state.rects.findIndex((rect) => rect.tag === 1);
+    if (topRectIndex !== -1) {
+      const [rect] = this.state.rects.splice(topRectIndex, 1);
+      this.state.rects.push(rect);
+    }
+  }
 }
 
 const mouseDownInRect = (
@@ -44,69 +214,48 @@ const renderCanvas = () => {
 
   ctx = ctx as CanvasRenderingContext2D;
 
-  const mouse: any = {
-    x: 0,
-    y: 0, // coordinates
-  };
-  const mouseDown = {
-    x: 0,
-    y: 0,
-  };
+  const coordinates = new Coordinates(canvas);
+  const player = new Pintu(coordinates);
 
-  let moveRect: Rect | null = null;
-  let recoverRect: Rect | null = null;
-
-  let hasMouseDown: boolean = false;
-
-  let targetRect: Rect | null = null;
-
-  const mousePositionSet = (event: MouseEvent) => {
-    const bounds = canvas.getBoundingClientRect();
-    // get the mouse coordinates, subtract the canvas top left and any scrolling
-    mouse.x = event.pageX - bounds.left - scrollX;
-    mouse.y = event.pageY - bounds.top - scrollY;
-
-    mouse.x /= bounds.width;
-    mouse.y /= bounds.height;
-
-    // then scale to canvas coordinates by multiplying the normalized coords with the canvas resolution
-
-    mouse.x *= canvas.width;
-    mouse.y *= canvas.height;
-  };
+  // const mouse: any = {
+  //   x: 0,
+  //   y: 0, // coordinates
+  // };
+  // const mouseDown = {
+  //   x: 0,
+  //   y: 0,
+  // };
+  // let hasMouseDown: boolean = false;
 
   const handleMouseDown = (event: MouseEvent) => {
-    mousePositionSet(event);
+    coordinates.updateMouse(event);
 
-    findRect();
+    player.findRect();
 
-    if (moveRect) {
-      mouseDown.x = mouse.x - moveRect.x;
-      mouseDown.y = mouse.y - moveRect.y;
+    if (player.state.moveRect) {
+      coordinates.handleMouseDown(player.state.moveRect);
 
-      hasMouseDown = true;
-
-      resetRects();
+      player.resetRects();
     }
   };
 
   const handleMouseMove = (event: MouseEvent) => {
-    mousePositionSet(event);
+    coordinates.updateMouse(event);
   };
 
   const handleMouseUp = (event: MouseEvent) => {
-    mousePositionSet(event);
+    coordinates.updateMouse(event);
 
-    hasMouseDown = false; // set the button up
+    coordinates.hasMouseDown = false;
 
-    const status = mouseDownInRect(targetRect!, mouse);
+    const status = mouseDownInRect(player.state.targetRect!, coordinates.mouse);
 
-    if (moveRect) {
+    if (player.state.moveRect) {
       if (status) {
-        mergeRectPosition(moveRect, targetRect!);
-        targetRect = recoverRect;
+        mergeRectPosition(player.state.moveRect, player.state.targetRect!);
+        player.state.targetRect = player.state.recoverRect;
       } else {
-        mergeRectPosition(moveRect, recoverRect!);
+        mergeRectPosition(player.state.moveRect, player.state.recoverRect!);
       }
     }
   };
@@ -121,9 +270,9 @@ const renderCanvas = () => {
 
     drawRects();
 
-    if (hasMouseDown && moveRect) {
-      moveRect.x = mouse.x - mouseDown.x;
-      moveRect.y = mouse.y - mouseDown.y;
+    if (coordinates.hasMouseDown && player.state.moveRect) {
+      player.state.moveRect.x = coordinates.mouse.x - coordinates.mouseDown.x;
+      player.state.moveRect.y = coordinates.mouse.y - coordinates.mouseDown.y;
     }
 
     requestAnimationFrame(mainLoop); // get next frame
@@ -131,88 +280,6 @@ const renderCanvas = () => {
 
   // start the app
   requestAnimationFrame(mainLoop);
-
-  const rects: Rect[] = [];
-  (window as any).rects = rects;
-
-  const findRect = () => {
-    for (const rect of rects) {
-      if (mouseDownInRect(rect, mouse)) {
-        moveRect = rect;
-        moveRect.tag = 1;
-
-        recoverRect = { ...rect };
-        return;
-      }
-    }
-  };
-
-  const resetRects = () => {
-    const topRectIndex = rects.findIndex((rect) => rect.tag === 1);
-    if (topRectIndex !== -1) {
-      const [rect] = rects.splice(topRectIndex, 1);
-      rects.push(rect);
-    }
-  };
-
-  function getRandomColor() {
-    var letters = "0123456789ABCDEF";
-    var color = "#";
-    for (var i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
-
-  const ROW_COUNT = 3;
-  const COL_COUNT = 3;
-  const RECT_WIDTH = 200;
-  const RECT_HEIGHT = 200;
-
-  function shuffleRects(rects: Rect[]) {
-    const array = Array.from(
-      {
-        length: ROW_COUNT * COL_COUNT,
-      },
-      (_, idx) => idx
-    );
-
-    for (var i = array.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-
-      var temp = { ...rects[i] };
-
-      rects[i].x = rects[j].x;
-      rects[i].y = rects[j].y;
-
-      rects[j].x = temp.x;
-      rects[j].y = temp.y;
-    }
-
-    return array;
-  }
-
-  for (let i = 0; i < ROW_COUNT; i++) {
-    for (let j = 0; j < COL_COUNT; j++) {
-      const color = getRandomColor();
-
-      const rect: Rect = {
-        id: `${i}-${j}`,
-        x: j * RECT_WIDTH,
-        y: i * RECT_HEIGHT,
-        width: RECT_WIDTH,
-        height: RECT_HEIGHT,
-        color,
-        tag: 0,
-      };
-
-      rects.push(rect);
-    }
-  }
-
-  shuffleRects(rects);
-
-  targetRect = rects.shift() as Rect;
 
   const drawRect = (rect: Rect) => {
     if (!ctx) return;
@@ -230,7 +297,7 @@ const renderCanvas = () => {
   const drawRects = () => {
     if (!ctx) return;
 
-    rects.forEach((rect) => {
+    player.state.rects.forEach((rect) => {
       drawRect(rect);
     });
   };
