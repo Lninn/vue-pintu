@@ -7,40 +7,21 @@ function getRandomColor() {
   return color;
 }
 
-function shuffleRects(rects: Rect[]) {
-  const array = Array.from(
-    {
-      length: ROW_COUNT * COL_COUNT,
-    },
-    (_, idx) => idx
-  );
-
+function shuffleArray(array: any[]) {
   for (var i = array.length - 1; i > 0; i--) {
     var j = Math.floor(Math.random() * (i + 1));
-
-    var temp = { ...rects[i] };
-
-    rects[i].x = rects[j].x;
-    rects[i].y = rects[j].y;
-
-    rects[j].x = temp.x;
-    rects[j].y = temp.y;
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
   }
-
-  return array;
 }
-
-type Tag = 0 | 1;
 
 interface Rect {
   id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
   color: string;
-  tag: Tag;
 }
+
+type InnerRect = Rect & { x: number; y: number; width: number; height: number };
 
 type Position = { x: number; y: number };
 
@@ -50,6 +31,8 @@ class Coordinates {
   hasMouseDown: boolean;
 
   canvas: HTMLCanvasElement;
+
+  player?: Pintu;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -63,6 +46,8 @@ class Coordinates {
       y: 0,
     };
     this.hasMouseDown = false;
+
+    this.bindEvents();
   }
 
   updateMouse(event: MouseEvent) {
@@ -80,51 +65,107 @@ class Coordinates {
     this.mouse.y *= this.canvas.height;
   }
 
-  handleMouseDown(moveRect: Rect) {
-    this.mouseDown.x = this.mouse.x - moveRect.x;
-    this.mouseDown.y = this.mouse.y - moveRect.y;
+  bindEvents() {
+    document.addEventListener("mousedown", this.handleMouseDown.bind(this));
+    document.addEventListener("mousemove", this.handleMouseMove.bind(this));
+    document.addEventListener("mouseup", this.handleMouseUp.bind(this));
+  }
 
-    this.hasMouseDown = true;
+  handleMouseDown(event: MouseEvent) {
+    this.updateMouse(event);
+
+    if (!this.player) return;
+
+    this.player.findRect();
+
+    if (this.player.moveIndex !== -1) {
+      const { x, y } = this.player.recordsMap.get(
+        this.player.moveIndex
+      ) as Position;
+
+      this.mouseDown.x = this.mouse.x - x * RECT_WIDTH;
+      this.mouseDown.y = this.mouse.y - y * RECT_HEIGHT;
+      this.hasMouseDown = true;
+
+      this.player.resetRects();
+    }
+  }
+
+  handleMouseMove(event: MouseEvent) {
+    this.updateMouse(event);
+  }
+
+  handleMouseUp(event: MouseEvent) {
+    this.updateMouse(event);
+
+    if (!this.player) return;
+
+    this.hasMouseDown = false;
+
+    const targetRect = this.player.rects[this.player.targetIndex];
+
+    const { x, y } = this.player.recordsMap.get(
+      this.player.targetIndex
+    ) as Position;
+
+    const newTargetRect: InnerRect = {
+      ...targetRect,
+      width: RECT_WIDTH,
+      height: RECT_HEIGHT,
+      x: x * RECT_WIDTH,
+      y: y * RECT_HEIGHT,
+    };
+
+    const status = mouseDownInRect(newTargetRect, this.mouse);
+
+    if (this.player.moveIndex !== -1) {
+      if (status) {
+        this.player.move();
+      } else {
+        this.player.recover();
+      }
+    }
   }
 }
 
 // Pintu
 
-const ROW_COUNT = 2;
-const COL_COUNT = 2;
+const ROW_COUNT = 3;
+const COL_COUNT = 3;
 const RECT_WIDTH = 120;
 const RECT_HEIGHT = 120;
 
-interface State {
-  rects: Rect[];
+type Payload = number | Position;
+class PintuMap {
+  result: Record<string, Payload> = {};
 
-  moveRect?: Rect;
-  recoverRect?: Rect;
+  constructor() {}
 
-  targetRect?: Rect;
-}
-
-const INIT_STATE: State = {
-  rects: [],
-
-  moveRect: undefined,
-  recoverRect: undefined,
-
-  targetRect: undefined,
-};
-
-class Pintu {
-  state: State = INIT_STATE;
-  coordinates: Coordinates;
-
-  constructor(coordinates: Coordinates) {
-    this.coordinates = coordinates;
-
-    this.initial();
+  set(key: Payload, value: Payload) {
+    const setKey = JSON.stringify(key);
+    this.result[setKey] = value;
   }
 
-  updateState(newState: State) {
-    this.state = newState;
+  get(key: Payload) {
+    const getKey = JSON.stringify(key);
+    return this.result[getKey];
+  }
+}
+
+class Pintu {
+  rects: Rect[] = [];
+  coordinates: Coordinates;
+  ctx: CanvasRenderingContext2D;
+
+  targetIndex: number = 0;
+  moveIndex: number = -1;
+  recordsMap: PintuMap = new PintuMap();
+
+  constructor(coordinates: Coordinates, ctx: CanvasRenderingContext2D) {
+    this.coordinates = coordinates;
+    this.ctx = ctx;
+
+    this.initial();
   }
 
   initial() {
@@ -132,123 +173,133 @@ class Pintu {
 
     for (let i = 0; i < ROW_COUNT; i++) {
       for (let j = 0; j < COL_COUNT; j++) {
-        const color = getRandomColor();
+        const no = i * ROW_COUNT + j;
+        const position: Position = { x: j, y: i };
 
+        const color = getRandomColor();
         const rect: Rect = {
-          id: `${i}-${j}`,
-          x: j * RECT_WIDTH,
-          y: i * RECT_HEIGHT,
-          width: RECT_WIDTH,
-          height: RECT_HEIGHT,
+          id: no.toString(),
           color,
-          tag: 0,
         };
 
         rects.push(rect);
+
+        this.recordsMap.set(position, no);
+        this.recordsMap.set(no, position);
       }
     }
 
-    shuffleRects(rects);
+    shuffleArray(rects);
 
-    const targetRect = rects.shift() as Rect;
-
-    this.updateState({
-      rects,
-
-      targetRect,
-    });
+    this.rects = rects;
   }
 
   findRect() {
-    for (const rect of this.state.rects) {
-      if (mouseDownInRect(rect, this.coordinates.mouse)) {
-        this.state.moveRect = rect;
-        this.state.moveRect.tag = 1;
+    for (let i = 0; i < this.rects.length; i++) {
+      const { x, y } = this.recordsMap.get(i) as Position;
 
-        this.state.recoverRect = { ...rect };
+      const rect: InnerRect = {
+        ...this.rects[i],
+        width: RECT_WIDTH,
+        height: RECT_HEIGHT,
+        x: x * RECT_WIDTH,
+        y: y * RECT_HEIGHT,
+      };
+
+      if (mouseDownInRect(rect, this.coordinates.mouse)) {
+        this.moveIndex = i;
         return;
       }
-    }
-
-    if (this.state.moveRect) {
-      this.state.moveRect.tag = 0;
-      this.state.moveRect = undefined;
     }
   }
 
   resetRects() {
-    const topRectIndex = this.state.rects.findIndex((rect) => rect.tag === 1);
-    if (topRectIndex !== -1) {
-      const [rect] = this.state.rects.splice(topRectIndex, 1);
-      this.state.rects.push(rect);
-    }
+    // const topRectIndex = this.state.rects.findIndex((rect) => rect.tag === 1);
+    // if (topRectIndex !== -1) {
+    //   const [rect] = this.state.rects.splice(topRectIndex, 1);
+    //   this.state.rects.push(rect);
+    // }
   }
 
-  getNextRect(key: string) {
-    if (!this.state.targetRect) return;
+  handleKeyDown(key: string) {
+    let position = this.recordsMap.get(this.targetIndex);
 
-    const point = {
-      x: this.state.targetRect.x / RECT_WIDTH,
-      y: this.state.targetRect.y / RECT_HEIGHT,
-    };
+    if (!position) return;
+    const newPosition = { ...(position as Position) };
 
     switch (key) {
       case "w":
-        point.y -= 1;
+        newPosition.y -= 1;
         break;
       case "d":
-        point.x += 1;
+        newPosition.x += 1;
         break;
       case "s":
-        point.y += 1;
+        newPosition.y += 1;
         break;
       case "a":
-        point.x -= 1;
+        newPosition.x -= 1;
         break;
     }
 
-    const nextRect = this.state.rects.find((rect) => {
-      return (
-        rect.x / RECT_WIDTH === point.x && rect.y / RECT_HEIGHT === point.y
-      );
-    });
+    const newIndex = this.recordsMap.get(newPosition) as number;
 
-    if (!nextRect) return;
+    if (newIndex === undefined) return;
 
-    var x = this.state.targetRect.x;
-    var y = this.state.targetRect.y;
+    const tmp = this.rects[this.targetIndex];
+    this.rects[this.targetIndex] = this.rects[newIndex];
+    this.rects[newIndex] = tmp;
 
-    this.state.targetRect.x = nextRect.x;
-    this.state.targetRect.y = nextRect.y;
-
-    nextRect.x = x;
-    nextRect.y = y;
+    this.targetIndex = newIndex;
   }
 
   move() {
-    if (!this.state.moveRect) return;
-
-    mergeRectPosition(this.state.moveRect, this.state.targetRect!);
-    this.state.targetRect = this.state.recoverRect;
+    console.log("move");
   }
 
-  recover() {
-    if (!this.state.moveRect) return;
-
-    mergeRectPosition(this.state.moveRect, this.state.recoverRect!);
-  }
+  recover() {}
 
   check() {
-    const indexs = this.state.rects.map((rect) => {
-      return (rect.x / RECT_WIDTH) * ROW_COUNT + rect.y / RECT_HEIGHT;
-    });
+    return this.rects.every((rect, idx) => rect.id === idx + "");
+  }
 
-    return indexs.every((index, i) => index === i);
+  update() {
+    const moveRect = this.rects[this.moveIndex];
+
+    if (this.coordinates.hasMouseDown && moveRect) {
+      // moveRect.x = this.coordinates.mouse.x - this.coordinates.mouseDown.x;
+      // moveRect.y = this.coordinates.mouse.y - this.coordinates.mouseDown.y;
+    }
+  }
+
+  drawRect(rect: Rect, x: number, y: number) {
+    this.ctx.fillStyle = rect.color;
+    this.ctx.fillRect(x, y, RECT_WIDTH, RECT_HEIGHT);
+
+    this.ctx.fillStyle = "#ffffff";
+
+    const fontSize = 35;
+    this.ctx.font = `${fontSize}px Arial`;
+    this.ctx.fillText(rect.id, x, y + fontSize);
+  }
+
+  drawRects() {
+    for (let i = 0; i < ROW_COUNT; i++) {
+      for (let j = 0; j < COL_COUNT; j++) {
+        const no = i * ROW_COUNT + j;
+
+        if (no !== this.targetIndex) {
+          const rect = this.rects[no];
+
+          this.drawRect(rect, j * RECT_WIDTH, i * RECT_HEIGHT);
+        }
+      }
+    }
   }
 }
 
 const mouseDownInRect = (
-  rect: Rect,
+  rect: InnerRect,
   mousePosition: { x: number; y: number }
 ) => {
   return (
@@ -260,8 +311,8 @@ const mouseDownInRect = (
 };
 
 const mergeRectPosition = (rect1: Rect, rect2: Rect) => {
-  rect1.x = rect2.x;
-  rect1.y = rect2.y;
+  // rect1.x = rect2.x;
+  // rect1.y = rect2.y;
 };
 
 const renderCanvas = () => {
@@ -282,46 +333,12 @@ const renderCanvas = () => {
   ctx = ctx as CanvasRenderingContext2D;
 
   const coordinates = new Coordinates(canvas);
-  const player = new Pintu(coordinates);
+  const player = new Pintu(coordinates, ctx);
 
-  const handleMouseDown = (event: MouseEvent) => {
-    coordinates.updateMouse(event);
-
-    player.findRect();
-
-    if (player.state.moveRect) {
-      coordinates.handleMouseDown(player.state.moveRect);
-
-      player.resetRects();
-    }
-  };
-
-  const handleMouseMove = (event: MouseEvent) => {
-    coordinates.updateMouse(event);
-  };
-
-  const handleMouseUp = (event: MouseEvent) => {
-    coordinates.updateMouse(event);
-
-    coordinates.hasMouseDown = false;
-
-    const status = mouseDownInRect(player.state.targetRect!, coordinates.mouse);
-
-    if (player.state.moveRect) {
-      if (status) {
-        player.move();
-      } else {
-        player.recover();
-      }
-    }
-  };
-
-  document.addEventListener("mousedown", handleMouseDown);
-  document.addEventListener("mousemove", handleMouseMove);
-  document.addEventListener("mouseup", handleMouseUp);
+  coordinates.player = player;
 
   const handleKeyDown = (event: KeyboardEvent) => {
-    player.getNextRect(event.key);
+    player.handleKeyDown(event.key);
 
     if (player.check()) {
       console.log("You Win!");
@@ -333,12 +350,9 @@ const renderCanvas = () => {
     // clear the canvas
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
 
-    drawRects();
+    player.update();
 
-    if (coordinates.hasMouseDown && player.state.moveRect) {
-      player.state.moveRect.x = coordinates.mouse.x - coordinates.mouseDown.x;
-      player.state.moveRect.y = coordinates.mouse.y - coordinates.mouseDown.y;
-    }
+    player.drawRects();
 
     requestAnimationFrame(mainLoop); // get next frame
   }
@@ -346,28 +360,7 @@ const renderCanvas = () => {
   // start the app
   requestAnimationFrame(mainLoop);
 
-  const drawRect = (rect: Rect) => {
-    if (!ctx) return;
-
-    ctx.fillStyle = rect.color;
-    ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
-
-    ctx.fillStyle = "#ffffff";
-
-    const fontSize = 35;
-    ctx.font = `${fontSize}px Arial`;
-    ctx.fillText(rect.id, rect.x, rect.y + fontSize);
-  };
-
-  const drawRects = () => {
-    if (!ctx) return;
-
-    player.state.rects.forEach((rect) => {
-      drawRect(rect);
-    });
-  };
-
-  drawRects();
+  player.drawRects();
 };
 
 const start = () => {
