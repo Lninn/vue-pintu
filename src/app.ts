@@ -130,10 +130,12 @@ class Coordinates {
 
 // Pintu
 
+const CANVAS_SCLAE = 2
+
 const ROW_COUNT = 3;
 const COL_COUNT = 3;
-const RECT_WIDTH = 120;
-const RECT_HEIGHT = 120;
+const RECT_WIDTH = 200 * CANVAS_SCLAE;
+const RECT_HEIGHT = 200 * CANVAS_SCLAE;
 
 type Payload = number | Position;
 class PintuMap {
@@ -316,10 +318,10 @@ const renderCanvas = () => {
   if (!container) return;
 
   const canvas = document.createElement("canvas");
-  canvas.width = 1024 * 2;
-  canvas.height = 1024 * 2;
-  canvas.style.width = "3000px";
-  canvas.style.height = "3000px";
+  canvas.width = 650 * CANVAS_SCLAE;
+  canvas.height = 650 * CANVAS_SCLAE;
+  canvas.style.width = "800px";
+  canvas.style.height = "800px";
 
   container.appendChild(canvas);
 
