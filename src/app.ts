@@ -90,10 +90,10 @@ class Coordinates {
 
 // Pintu
 
-const ROW_COUNT = 3;
-const COL_COUNT = 3;
-const RECT_WIDTH = 150;
-const RECT_HEIGHT = 150;
+const ROW_COUNT = 2;
+const COL_COUNT = 2;
+const RECT_WIDTH = 120;
+const RECT_HEIGHT = 120;
 
 interface State {
   rects: Rect[];
@@ -207,14 +207,22 @@ class Pintu {
         break;
     }
 
-    if (!this.state.moveRect || !this.state.recoverRect) return;
+    const nextRect = this.state.rects.find((rect) => {
+      return (
+        rect.x / RECT_WIDTH === point.x && rect.y / RECT_HEIGHT === point.y
+      );
+    });
 
-    this.state.moveRect.x = point.x * RECT_WIDTH;
-    this.state.moveRect.y = point.y * RECT_HEIGHT;
-    this.state.recoverRect.x = point.x * RECT_WIDTH;
-    this.state.recoverRect.y = point.y * RECT_HEIGHT;
+    if (!nextRect) return;
 
-    this.move();
+    var x = this.state.targetRect.x;
+    var y = this.state.targetRect.y;
+
+    this.state.targetRect.x = nextRect.x;
+    this.state.targetRect.y = nextRect.y;
+
+    nextRect.x = x;
+    nextRect.y = y;
   }
 
   move() {
@@ -228,6 +236,14 @@ class Pintu {
     if (!this.state.moveRect) return;
 
     mergeRectPosition(this.state.moveRect, this.state.recoverRect!);
+  }
+
+  check() {
+    const indexs = this.state.rects.map((rect) => {
+      return (rect.x / RECT_WIDTH) * ROW_COUNT + rect.y / RECT_HEIGHT;
+    });
+
+    return indexs.every((index, i) => index === i);
   }
 }
 
@@ -306,6 +322,10 @@ const renderCanvas = () => {
 
   const handleKeyDown = (event: KeyboardEvent) => {
     player.getNextRect(event.key);
+
+    if (player.check()) {
+      console.log("You Win!");
+    }
   };
   document.addEventListener("keydown", handleKeyDown);
 
@@ -334,7 +354,7 @@ const renderCanvas = () => {
 
     ctx.fillStyle = "#ffffff";
 
-    const fontSize = 50;
+    const fontSize = 35;
     ctx.font = `${fontSize}px Arial`;
     ctx.fillText(rect.id, rect.x, rect.y + fontSize);
   };
