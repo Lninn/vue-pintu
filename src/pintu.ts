@@ -1,7 +1,6 @@
-import {  mouseDownInRect } from "./app";
 import { ROW_COUNT, COL_COUNT, RECT_WIDTH, RECT_HEIGHT } from "./constant";
 import { Coordinates } from "./coordinates";
-import { Position, Rect, InnerRect } from "./type";
+import { Position, Rect } from "./type";
 
 function getRandomColor() {
   var letters = "0123456789ABCDEF";
@@ -81,24 +80,7 @@ export class Pintu {
     this.rects = rects;
   }
 
-  findRect() {
-    for (let i = 0; i < this.rects.length; i++) {
-      const { x, y } = this.recordsMap.get(i) as Position;
-
-      const rect: InnerRect = {
-        ...this.rects[i],
-        width: RECT_WIDTH,
-        height: RECT_HEIGHT,
-        x: x * RECT_WIDTH,
-        y: y * RECT_HEIGHT,
-      };
-
-      if (mouseDownInRect(rect, this.coordinates.mouse)) {
-        this.moveIndex = i;
-        return;
-      }
-    }
-  }
+  findRect() {}
 
   resetRects() {
     // const topRectIndex = this.state.rects.findIndex((rect) => rect.tag === 1);
