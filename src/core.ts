@@ -83,8 +83,6 @@ function drawItems(ctx: CanvasRenderingContext2D, items: Items) {
 }
 
 
-
-
 function swapItem(items: Items, from: Pos, to: Pos) {
   const fromItem = items[from.row][from.col]
   const toItem = items[to.row][to.col]
@@ -125,60 +123,43 @@ function fixRow(row: number) {
   return row
 }
 
-registerAction('d', function() {
+function runItemAction(getNextPos: Function) {
   const pos = findFixedItemPos(items)
   if (!pos) return
   
-  const nextPos = {
-    row: pos.row,
-    col: fixCol(pos.col + 1),
-  }
+  const nextPos = getNextPos(pos)
 
   swapItem(items, pos, nextPos)
 
   reDraw()
+}
+
+registerAction('d', function() {
+  runItemAction((pos: Pos) => ({
+    row: pos.row,
+    col: fixCol(pos.col + 1),
+  }))
 })
 
 registerAction('a', function() {
-  const pos = findFixedItemPos(items)
-  if (!pos) return
-  
-  const nextPos = {
+  runItemAction((pos: Pos) => ({
     row: pos.row,
     col: fixCol(pos.col - 1),
-  }
-
-  swapItem(items, pos, nextPos)
-
-  reDraw()
+  }))
 })
 
 registerAction('w', function() {
-  const pos = findFixedItemPos(items)
-  if (!pos) return
-  
-  const nextPos = {
+  runItemAction((pos: Pos) => ({
     row: fixRow(pos.row - 1),
     col: pos.col,
-  }
-
-  swapItem(items, pos, nextPos)
-
-  reDraw()
+  }))
 })
 
 registerAction('s', function() {
-  const pos = findFixedItemPos(items)
-  if (!pos) return
-  
-  const nextPos = {
+  runItemAction((pos: Pos) => ({
     row: fixRow(pos.row + 1),
     col: pos.col,
-  }
-
-  swapItem(items, pos, nextPos)
-
-  reDraw()
+  }))
 })
 
 
