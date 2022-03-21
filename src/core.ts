@@ -5,6 +5,8 @@ const CELL_SIZE = 30;
 
 const FIXED_INDEX = 0;
 
+type Pos = { row: number; col: number }
+
 /**
  * Item Identity
  * 
@@ -55,15 +57,16 @@ function getRandomColor() {
   return color;
 }
 
-function findFixedItem(items: Items) {
+function findFixedItemPos(items: Items) {
   for (let i = 0; i < items.length; i++) {
     for (let j = 0; j < items[i].length; j++) {
       const item = items[i][j]
       if (item.tag === 0) {
-        return item
+        return { row: i, col: j }
       }
     }
   }
+
   return undefined
 }
 
@@ -80,6 +83,17 @@ function drawItems(ctx: CanvasRenderingContext2D, items: Items) {
 }
 
 
+
+
+function swapItem(items: Items, from: Pos, to: Pos) {
+  const fromItem = items[from.row][from.col]
+  const toItem = items[to.row][to.col]
+
+  items[from.row][from.col] = toItem
+  items[to.row][to.col] = fromItem
+}
+
+
 const actions: any = {}
 function registerAction(key: string, action: Function) {
   if (!actions.hasOwnProperty(key)) {
@@ -87,13 +101,84 @@ function registerAction(key: string, action: Function) {
   }
 }
 
+function fixCol(col: number) {
+  if (col <= 0) {
+    return 0
+  }
+
+  if (col >= COL_COUNT - 1) {
+    return COL_COUNT - 1
+  }
+  
+  return col
+}
+
+function fixRow(row: number) {
+  if (row <= 0) {
+    return 0
+  }
+
+  if (row >= ROW_COUNT - 1) {
+    return ROW_COUNT - 1
+  }
+
+  return row
+}
+
 registerAction('d', function() {
-  const fixedItem = findFixedItem(items)
+  const pos = findFixedItemPos(items)
+  if (!pos) return
+  
+  const nextPos = {
+    row: pos.row,
+    col: fixCol(pos.col + 1),
+  }
 
-  // TODO 判断是否可移动
+  swapItem(items, pos, nextPos)
 
+  reDraw()
+})
 
-  console.log('d',fixedItem)
+registerAction('a', function() {
+  const pos = findFixedItemPos(items)
+  if (!pos) return
+  
+  const nextPos = {
+    row: pos.row,
+    col: fixCol(pos.col - 1),
+  }
+
+  swapItem(items, pos, nextPos)
+
+  reDraw()
+})
+
+registerAction('w', function() {
+  const pos = findFixedItemPos(items)
+  if (!pos) return
+  
+  const nextPos = {
+    row: fixRow(pos.row - 1),
+    col: pos.col,
+  }
+
+  swapItem(items, pos, nextPos)
+
+  reDraw()
+})
+
+registerAction('s', function() {
+  const pos = findFixedItemPos(items)
+  if (!pos) return
+  
+  const nextPos = {
+    row: fixRow(pos.row + 1),
+    col: pos.col,
+  }
+
+  swapItem(items, pos, nextPos)
+
+  reDraw()
 })
 
 
@@ -110,6 +195,17 @@ function start(ctx: CanvasRenderingContext2D) {
   drawItems(ctx, items)
 }
 
+let __ctx: CanvasRenderingContext2D
+function setCtx(ctx: CanvasRenderingContext2D) {
+  __ctx = ctx
+}
+
+function reDraw() {
+  __ctx.clearRect(0, 0, __ctx.canvas.width, __ctx.canvas.height)
+  drawItems(__ctx, items)
+}
+
 export {
-  start
+  start,
+  setCtx
 }

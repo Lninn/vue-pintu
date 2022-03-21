@@ -17,8 +17,8 @@ const start = () => {
 
   ctx = ctx as CanvasRenderingContext2D;
 
+  core.setCtx(ctx);
   core.start(ctx);
-
 };
 
 const app = {
