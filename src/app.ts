@@ -5,10 +5,10 @@ const start = () => {
   if (!container) return;
 
   const canvas = document.createElement("canvas");
-  canvas.width = 300;
-  canvas.height = 300;
-  canvas.style.width = "800px";
-  canvas.style.height = "800px";
+  canvas.width = 600;
+  canvas.height = 600;
+  canvas.style.width = "500px";
+  canvas.style.height = "500px";
 
   container.appendChild(canvas);
 

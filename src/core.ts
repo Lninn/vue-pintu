@@ -1,7 +1,7 @@
 const ROW_COUNT = 3;
 const COL_COUNT = 3;
 
-const CELL_SIZE = 30;
+const CELL_SIZE = 200;
 
 const FIXED_INDEX = 0;
 
@@ -78,6 +78,12 @@ function drawItems(ctx: CanvasRenderingContext2D, items: Items) {
       const item = items[i][j]
       ctx.fillStyle = item.color
       ctx.fillRect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '100px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2)
     }
   }
 }
@@ -132,6 +138,8 @@ function runItemAction(getNextPos: Function) {
   swapItem(items, pos, nextPos)
 
   reDraw()
+
+  console.log(items)
 }
 
 registerAction('d', function() {
