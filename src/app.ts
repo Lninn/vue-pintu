@@ -3,6 +3,8 @@ const COL_COUNT = 3;
 
 const FIXED_INDEX = 0;
 
+const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
+
 type Pos = { row: number; col: number }
 
 /**
@@ -150,6 +152,8 @@ class Pintu {
   itemWidth!: number
   items!: Items
 
+  audio: HTMLAudioElement = new Audio(AUDIO_URL)
+
   constructor() {
     this.initialize()
 
@@ -214,13 +218,45 @@ class Pintu {
 
     if (pos?.row === row && pos.col === col) return
     
+    let run = true
     if (row === pos?.row && Math.abs(col - pos?.col) === 1) {
       swapItem(this.items, pos, { row, col })
     } else if (col === pos?.col && Math.abs(row - pos?.row) === 1) {
       swapItem(this.items, pos, { row, col })
+    } else {
+      run = false
     }
 
-    this.drawItems()
+    if (run) {
+      this.drawItems()
+
+      this.playAudio()
+
+      this.check()
+    }
+  }
+
+  check() {
+    const noList = []
+    const str = '1,2,3,4,5,6,7,8,0'
+
+    for (let i = 0; i < ROW_COUNT; i++) {
+      for(let j = 0; j < COL_COUNT; j++) {
+        const item = this.items[i][j]
+          noList.push(item.id)
+      }
+    }
+
+    if (noList.toString() === str) {
+      alert('win')
+    }
+  }
+
+
+  playAudio() {
+    this.audio.currentTime = 0
+
+    this.audio.play()
   }
 
 
