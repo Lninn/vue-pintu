@@ -53,6 +53,48 @@ function getRandomColor() {
   return color;
 }
 
+
+function randomIntFromInterval(min: number, max: number) { // min and max included 
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+
+function shuffle(items: Items) {
+  const s = 0
+  const e = 2
+
+  function shuffleItem() {
+    const r1 = randomIntFromInterval(s, e)
+    const c1 = randomIntFromInterval(s, e)
+
+    const r2 = randomIntFromInterval(s, e)
+    const c2 = randomIntFromInterval(s, e)
+    
+    const tmp = items[r1][c1]
+    items[r1][c1] = items[r2][c2]
+    items[r2][c2] = tmp
+  }
+
+  function recover() {
+    const fixedPos = findFixedItemPos(items)
+
+    if (!fixedPos) return
+
+    if (fixedPos.row === 0 && fixedPos.col === 0) return
+
+    const tmp = items[0][0]
+    items[0][0] = items[fixedPos.row][fixedPos.col]
+    items[fixedPos.row][fixedPos.col] = tmp
+  }
+
+  for (let i = 0; i < 10; i++) {
+    shuffleItem()
+  }
+
+  recover()
+}
+
+
 function findFixedItemPos(items: Items) {
   for (let i = 0; i < items.length; i++) {
     for (let j = 0; j < items[i].length; j++) {
@@ -143,7 +185,10 @@ class Pintu {
   }
 
   itemsInited() {
-    this.items = createItems()
+    const items = createItems()
+    shuffle(items)
+
+    this.items = items
   }
 
   bindEvents() {
@@ -200,3 +245,6 @@ class Pintu {
 
 const pintuIns = new Pintu()
 pintuIns.drawItems()
+
+
+console.log(pintuIns)
