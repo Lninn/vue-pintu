@@ -27,7 +27,7 @@ type ItemTag = 0 | 1
 
 type Item = {
   id: number,
- 
+
   color: string,
   readonly tag: ItemTag
 }
@@ -83,7 +83,7 @@ function shuffle(items: Items) {
 
     const r2 = randomIntFromInterval(s, e)
     const c2 = randomIntFromInterval(s, e)
-    
+
     const tmp = items[r1][c1]
     items[r1][c1] = items[r2][c2]
     items[r2][c2] = tmp
@@ -139,16 +139,20 @@ class Control {
 
   onReStart: () => void = () => { }
   onLevelChange: (level: string) => void
+  onFileChange: (file: any) => void
 
   constructor({
     onReStart,
-    onLevelChange
-  }:{
+    onLevelChange,
+    onFileChange
+  }: {
     onReStart: () => void
     onLevelChange: (level: string) => void
+    onFileChange: (file: any) => void
   }) {
     this.onReStart = onReStart
     this.onLevelChange = onLevelChange
+    this.onFileChange = onFileChange
     this.initialize()
   }
 
@@ -178,6 +182,26 @@ class Control {
       this.stepCount = 0
       this.drawStep()
     }
+
+    const file = document.getElementById('file')
+    if (!file) return
+
+    const self = this
+    file.onchange = (e: any) => {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.onload = createImage;
+      reader.readAsDataURL(file);
+
+      function createImage() {
+        const img = new Image();
+        img.onload = () => {
+          self.onFileChange(img)
+        };
+        img.src = reader.result as any;
+      }
+    };
+
   }
 
   recordStep() {
@@ -206,12 +230,13 @@ class Pintu {
   control!: Control
 
   diffLevel: string = '1'
+  img: HTMLImageElement | null = null
 
   constructor() {
     this.initialize()
 
     this.bindEvents()
-    
+
     this.itemInited()
 
     this.itemsInited(this.diffLevel)
@@ -232,15 +257,21 @@ class Pintu {
         self.itemInited()
         self.itemsInited(level)
         self.drawItems()
+      },
+      onFileChange(img: any) {
+        self.img = img
+
+        self.itemsInited(self.diffLevel)
+        self.drawItems()
       }
     })
   }
-  
+
   initialize() {
     const container = document.querySelector("#app");
     if (!container) return;
 
-    const appWidth =document.documentElement.clientWidth
+    const appWidth = document.documentElement.clientWidth
 
     const canvas = document.createElement("canvas");
 
@@ -263,7 +294,7 @@ class Pintu {
     this.itemWidth = cWidth / COL_COUNT
   }
 
-  itemsInited(level:string) {
+  itemsInited(level: string) {
     const items = createItems(level)
     shuffle(items)
 
@@ -292,7 +323,7 @@ class Pintu {
     const pos = findFixedItemPos(this.items)
 
     if (pos?.row === row && pos.col === col) return
-    
+
     let run = true
     if (row === pos?.row && Math.abs(col - pos?.col) === 1) {
       swapItem(this.items, pos, { row, col })
@@ -319,9 +350,9 @@ class Pintu {
     const { ROW_COUNT, COL_COUNT } = tableCount[this.diffLevel]
 
     for (let i = 0; i < ROW_COUNT; i++) {
-      for(let j = 0; j < COL_COUNT; j++) {
+      for (let j = 0; j < COL_COUNT; j++) {
         const item = this.items[i][j]
-          noList.push(item.id)
+        noList.push(item.id)
       }
     }
 
@@ -347,8 +378,15 @@ class Pintu {
       for (let j = 0; j < COL_COUNT; j++) {
         const item = this.items[i][j]
         this.ctx.fillStyle = item.color
-        this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
-  
+
+        if (this.img) {
+          const imgWidth = this.img.width / ROW_COUNT
+          const imgHeight = this.img.height / COL_COUNT
+          this.ctx.drawImage(this.img, j * imgWidth, i * imgHeight, imgWidth, imgWidth, j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
+        } else {
+          this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
+        }
+
         this.ctx.fillStyle = '#ffffff'
         this.ctx.font = '60px Arial'
         this.ctx.textAlign = 'center'

@@ -28,7 +28,7 @@ canvas {
 
 .Controls {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
 
   padding: 12px;
@@ -36,6 +36,13 @@ canvas {
 
 .Controls,
 .Controls button,
-.Controls select {
+.Controls select,
+.Controls input {
   font-size: 18px;
+}
+
+.Controls > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
