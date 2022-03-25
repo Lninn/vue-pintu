@@ -1,5 +1,13 @@
-const ROW_COUNT = 3;
-const COL_COUNT = 3;
+const tableCount: any = {
+  "1": {
+    ROW_COUNT: 3,
+    COL_COUNT: 3,
+  },
+  "2": {
+    ROW_COUNT: 4,
+    COL_COUNT: 4
+  }
+}
 
 const FIXED_INDEX = 0;
 
@@ -24,8 +32,10 @@ type Item = {
 
 type Items = Item[][]
 
-const createItems = () => {
+const createItems = (level: string) => {
   const items: Items = []
+
+  const { ROW_COUNT, COL_COUNT } = tableCount[level]
 
   for (let i = 0; i < ROW_COUNT; i++) {
     items[i] = []
@@ -120,28 +130,65 @@ function swapItem(items: Items, from: Pos, to: Pos) {
 }
 
 
-function fixCol(col: number) {
-  if (col <= 0) {
-    return 0
+class Control {
+  private stepEl: HTMLSpanElement | null = null
+  private stepCount: number = 0
+
+
+  onReStart: () => void = () => { }
+  onLevelChange: (level: string) => void
+
+  constructor({
+    onReStart,
+    onLevelChange
+  }:{
+    onReStart: () => void
+    onLevelChange: (level: string) => void
+  }) {
+    this.onReStart = onReStart
+    this.onLevelChange = onLevelChange
+    this.initialize()
   }
 
-  if (col >= COL_COUNT - 1) {
-    return COL_COUNT - 1
-  }
-  
-  return col
-}
+  private initialize() {
+    const step = document.getElementById('step')
+    if (!step) return
 
-function fixRow(row: number) {
-  if (row <= 0) {
-    return 0
+    this.stepEl = step as HTMLSpanElement
+
+    const reStart = document.getElementById('re-start')
+    if (!reStart) return
+
+    reStart.onclick = () => {
+      this.onReStart()
+
+      this.stepCount = 0
+      this.drawStep()
+    }
+
+    const diff = document.getElementById('diff')
+    if (!diff) return
+
+    diff.onchange = (e: any) => {
+      const level = e.target.value
+      this.onLevelChange(level)
+
+      this.stepCount = 0
+      this.drawStep()
+    }
   }
 
-  if (row >= ROW_COUNT - 1) {
-    return ROW_COUNT - 1
+  recordStep() {
+    this.stepCount++
+
+    this.drawStep()
   }
 
-  return row
+  drawStep() {
+    if (this.stepEl) {
+      this.stepEl.innerHTML = this.stepCount.toString()
+    }
+  }
 }
 
 
@@ -154,6 +201,10 @@ class Pintu {
 
   audio: HTMLAudioElement = new Audio(AUDIO_URL)
 
+  control!: Control
+
+  diffLevel: string = '1'
+
   constructor() {
     this.initialize()
 
@@ -161,14 +212,33 @@ class Pintu {
     
     this.itemInited()
 
-    this.itemsInited()
+    this.itemsInited(this.diffLevel)
+
+    this.controlInit()
+  }
+
+  controlInit() {
+    const self = this
+
+    this.control = new Control({
+      onReStart() {
+        self.itemsInited(self.diffLevel)
+        self.drawItems()
+      },
+      onLevelChange(level: string) {
+        self.diffLevel = level
+        self.itemInited()
+        self.itemsInited(level)
+        self.drawItems()
+      }
+    })
   }
   
   initialize() {
     const container = document.querySelector("#app");
     if (!container) return;
 
-    const appWidth = container.clientWidth;
+    const appWidth =document.documentElement.clientWidth
 
     const canvas = document.createElement("canvas");
 
@@ -185,11 +255,12 @@ class Pintu {
   }
 
   itemInited() {
+    const { COL_COUNT } = tableCount[this.diffLevel]
     this.itemWidth = this.canvas.width / COL_COUNT
   }
 
-  itemsInited() {
-    const items = createItems()
+  itemsInited(level:string) {
+    const items = createItems(level)
     shuffle(items)
 
     this.items = items
@@ -228,6 +299,8 @@ class Pintu {
     }
 
     if (run) {
+      this.control.recordStep()
+
       this.drawItems()
 
       this.playAudio()
@@ -239,6 +312,7 @@ class Pintu {
   check() {
     const noList = []
     const str = '1,2,3,4,5,6,7,8,0'
+    const { ROW_COUNT, COL_COUNT } = tableCount[this.diffLevel]
 
     for (let i = 0; i < ROW_COUNT; i++) {
       for(let j = 0; j < COL_COUNT; j++) {
@@ -254,6 +328,7 @@ class Pintu {
 
 
   playAudio() {
+    this.audio.pause()
     this.audio.currentTime = 0
 
     this.audio.play()
@@ -262,6 +337,7 @@ class Pintu {
 
   drawItems() {
     const CELL_SIZE = this.itemWidth
+    const { ROW_COUNT, COL_COUNT } = tableCount[this.diffLevel]
 
     for (let i = 0; i < ROW_COUNT; i++) {
       for (let j = 0; j < COL_COUNT; j++) {
@@ -270,7 +346,7 @@ class Pintu {
         this.ctx.fillRect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
   
         this.ctx.fillStyle = '#ffffff'
-        this.ctx.font = '100px Arial'
+        this.ctx.font = '60px Arial'
         this.ctx.textAlign = 'center'
         this.ctx.textBaseline = 'middle'
         this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2)
@@ -278,6 +354,7 @@ class Pintu {
     }
   }
 }
+
 
 const pintuIns = new Pintu()
 pintuIns.drawItems()

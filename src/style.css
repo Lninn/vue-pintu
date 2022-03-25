@@ -10,9 +10,6 @@ body {
 #app {
   position: relative;
   height: 100%;
-
-  display: grid;
-  place-items: center;
 }
 
 .Item {
@@ -22,4 +19,18 @@ body {
 .Item:hover {
   opacity: 0.85;
   cursor: grab;
+}
+
+.Controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 12px;
+}
+
+.Controls,
+.Controls button,
+.Controls select {
+  font-size: 18px;
 }

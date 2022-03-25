@@ -7,7 +7,23 @@
     <title>Vite App</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="Controls">
+        <div>
+          Step: <span id="step">0</span>
+        </div>
+        <div>
+          <button id="re-start">重新开始</button>
+        </div>
+        <div>
+          难度：
+          <select id="diff">
+            <option value="1">简单</option>
+            <option value="2">正常</option>
+          </select>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
