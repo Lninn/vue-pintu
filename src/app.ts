@@ -11,6 +11,8 @@ const tableCount: any = {
 
 const FIXED_INDEX = 0;
 
+const PADDING = 36
+
 const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
 
 type Pos = { row: number; col: number }
@@ -255,8 +257,10 @@ class Pintu {
   }
 
   itemInited() {
+    const cWidth = this.canvas.width - PADDING * 2
+
     const { COL_COUNT } = tableCount[this.diffLevel]
-    this.itemWidth = this.canvas.width / COL_COUNT
+    this.itemWidth = cWidth / COL_COUNT
   }
 
   itemsInited(level:string) {
@@ -279,8 +283,8 @@ class Pintu {
 
     const { left, top } = this.canvas.getBoundingClientRect()
 
-    const offsetX = clientX - left
-    const offsetY = clientY - top
+    const offsetX = clientX - left - PADDING
+    const offsetY = clientY - top - PADDING
 
     const row = Math.floor(offsetY / CELL_SIZE)
     const col = Math.floor(offsetX / CELL_SIZE)
@@ -343,13 +347,13 @@ class Pintu {
       for (let j = 0; j < COL_COUNT; j++) {
         const item = this.items[i][j]
         this.ctx.fillStyle = item.color
-        this.ctx.fillRect(j * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+        this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
   
         this.ctx.fillStyle = '#ffffff'
         this.ctx.font = '60px Arial'
         this.ctx.textAlign = 'center'
         this.ctx.textBaseline = 'middle'
-        this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2, i * CELL_SIZE + CELL_SIZE / 2)
+        this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2 + PADDING, i * CELL_SIZE + CELL_SIZE / 2 + PADDING)
       }
     }
   }
