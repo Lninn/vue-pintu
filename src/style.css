@@ -46,3 +46,7 @@ canvas {
   align-items: center;
   gap: 8px;
 }
+
+#audio {
+  min-width: max-content;
+}

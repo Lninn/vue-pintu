@@ -140,19 +140,23 @@ class Control {
   onReStart: () => void = () => { }
   onLevelChange: (level: string) => void
   onFileChange: (file: any) => void
+  onAudioPlay: (txt: string) => any
 
   constructor({
     onReStart,
     onLevelChange,
-    onFileChange
+    onFileChange,
+    onAudioPlay
   }: {
     onReStart: () => void
     onLevelChange: (level: string) => void
     onFileChange: (file: any) => void
+    onAudioPlay: (txt: string) => any
   }) {
     this.onReStart = onReStart
     this.onLevelChange = onLevelChange
     this.onFileChange = onFileChange
+    this.onAudioPlay = onAudioPlay
     this.initialize()
   }
 
@@ -201,6 +205,20 @@ class Control {
         img.src = reader.result as any;
       }
     };
+
+    const audio = document.getElementById('audio')
+    if (!audio) return
+  
+    audio.onclick = () => {
+      const txt = audio.innerHTML
+      if (txt === '音效') {
+        audio.innerHTML = '静音'
+        this.onAudioPlay('静音')
+      } else {
+        audio.innerHTML = '音效'
+        this.onAudioPlay('音效')
+      }
+    }
 
   }
 
@@ -263,6 +281,13 @@ class Pintu {
 
         self.itemsInited(self.diffLevel)
         self.drawItems()
+      },
+      onAudioPlay(txt: string) {
+        if (txt === '音效') {
+          self.audio.volume = 60 / 100
+        } else {
+          self.audio.volume = 0
+        }
       }
     })
   }
@@ -380,18 +405,35 @@ class Pintu {
         this.ctx.fillStyle = item.color
 
         if (this.img) {
-          const imgWidth = this.img.width / ROW_COUNT
-          const imgHeight = this.img.height / COL_COUNT
-          this.ctx.drawImage(this.img, j * imgWidth, i * imgHeight, imgWidth, imgWidth, j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
+          if (item.tag === 0) {
+            this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
+          } else {
+            // TODO
+            const imgWidth = this.img.width / ROW_COUNT
+            const imgHeight = this.img.height / COL_COUNT
+            this.ctx.drawImage(
+              this.img,
+              j * imgWidth,
+              i * imgHeight,
+              imgWidth,
+              imgHeight,
+              j * CELL_SIZE + PADDING,
+              i * CELL_SIZE + PADDING,
+              CELL_SIZE,
+              CELL_SIZE
+            )
+          }
         } else {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
         }
 
-        this.ctx.fillStyle = '#ffffff'
-        this.ctx.font = '60px Arial'
-        this.ctx.textAlign = 'center'
-        this.ctx.textBaseline = 'middle'
-        this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2 + PADDING, i * CELL_SIZE + CELL_SIZE / 2 + PADDING)
+        if (!this.img && item.tag === 1) {
+          this.ctx.fillStyle = '#ffffff'
+          this.ctx.font = '60px Arial'
+          this.ctx.textAlign = 'center'
+          this.ctx.textBaseline = 'middle'
+          this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2 + PADDING, i * CELL_SIZE + CELL_SIZE / 2 + PADDING)
+        }
       }
     }
   }
