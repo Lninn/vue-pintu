@@ -50,3 +50,7 @@ canvas {
 #audio {
   min-width: max-content;
 }
+
+.form-control {
+  font-size: 18px;
+}

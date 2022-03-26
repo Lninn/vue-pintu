@@ -1,4 +1,5 @@
 import { Pintu } from "./pintu"
+import { Manager } from './hepler'
 
 const IMAGE = 'https://cdn.pixabay.com/photo/2022/01/17/06/38/altai-6943982_960_720.jpg'
 
@@ -129,6 +130,19 @@ const main = async () => {
   )
 
   const pintuIns = new Pintu(img)
+
+  new Manager({
+    actionMap: {
+      level(value: string) {
+        console.log('level change', value);
+      },
+      sound(value: string) {
+        console.log('sound change', value);
+        
+      }
+    },
+  })
+
   pintuIns.draw()
 }
 
