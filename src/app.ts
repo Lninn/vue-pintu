@@ -6,6 +6,10 @@ const tableCount: any = {
   "2": {
     ROW_COUNT: 4,
     COL_COUNT: 4
+  },
+  "3": {
+    ROW_COUNT: 5,
+    COL_COUNT: 5
   }
 }
 
@@ -435,7 +439,7 @@ class Pintu {
 
         if (!this.img && item.tag === 1) {
           this.ctx.fillStyle = '#ffffff'
-          this.ctx.font = '60px Arial'
+          this.ctx.font = '30px Arial'
           this.ctx.textAlign = 'center'
           this.ctx.textBaseline = 'middle'
           this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2 + PADDING, i * CELL_SIZE + CELL_SIZE / 2 + PADDING)
