@@ -336,9 +336,9 @@ export class Pintu {
         const __y = Math.floor(item.id / 3)
 
         if (this.img) {
-          if (item.tag === 0) {
-            this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
-          } else {
+          const isDrawImage = this.status === 'end' ? true : item.tag === 1
+
+          if(isDrawImage) {
             const imgWidth = this.img.width / ROW_COUNT
             const imgHeight = this.img.height / COL_COUNT
             this.ctx.drawImage(
@@ -352,6 +352,8 @@ export class Pintu {
               CELL_SIZE,
               CELL_SIZE
             )
+          } else {
+            this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
           }
         } else {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
@@ -368,6 +370,9 @@ export class Pintu {
 
   drawEnd() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+    this.drawItems()
+
     this.ctx.fillStyle = getRandomColor()
     this.ctx.font = '60px Arial'
     this.ctx.textAlign = 'center'
