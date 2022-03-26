@@ -111,14 +111,25 @@ const getImagae = (url: string) => {
   })
 }
 
-const start = async () => {
+function logTime(time: number) {
+  const loadTIme = document.getElementById('load-time')
+  if (!loadTIme) return
+
+  loadTIme.innerHTML = time.toString() + 'ms'
+}
+
+const main = async () => {
+  const begin = new Date()
+
   const img = await getImagae(IMAGE) as HTMLImageElement
   if (!img) return
 
+  logTime(
+    new Date().getTime() - begin.getTime()
+  )
+
   const pintuIns = new Pintu(img)
   pintuIns.draw()
-
-  console.log(pintuIns);
 }
 
-start()
+main()
