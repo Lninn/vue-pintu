@@ -13,9 +13,9 @@ const tableCount: any = {
   }
 }
 
-const FIXED_INDEX = 0;
-
+const FIXED_INDEX = 0
 const PADDING = 36
+const IS_DEV = true
 
 const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
 
@@ -414,6 +414,9 @@ class Pintu {
         const item = this.items[i][j]
         this.ctx.fillStyle = item.color
 
+        const __x = item.id % 3
+        const __y = Math.floor(item.id / 3)
+
         if (this.img) {
           if (item.tag === 0) {
             this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
@@ -423,8 +426,8 @@ class Pintu {
             const imgHeight = this.img.height / COL_COUNT
             this.ctx.drawImage(
               this.img,
-              j * imgWidth,
-              i * imgHeight,
+              __x * imgWidth,
+              __y * imgHeight,
               imgWidth,
               imgHeight,
               j * CELL_SIZE + PADDING,
@@ -437,7 +440,8 @@ class Pintu {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
         }
 
-        if (!this.img && item.tag === 1) {
+        const showId = !this.img && item.tag === 1
+        if (showId) {
           this.ctx.fillStyle = '#ffffff'
           this.ctx.font = '30px Arial'
           this.ctx.textAlign = 'center'
