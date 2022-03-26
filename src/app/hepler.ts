@@ -3,19 +3,19 @@ type ActionType = 'level' | 'sound'
 const CONFIG = [
   {
     key: 'level',
-    value: 0,
+    value: 1,
     label: '难度',
     options: [
       {
-        value: 0,
+        value: 1,
         label: '简单',
       },
       {
-        value: 1,
+        value: 2,
         label: '正常',
       },
       {
-        value: 2,
+        value: 3,
         label: '难度',
       }
     ]

@@ -134,7 +134,7 @@ const main = async () => {
   new Manager({
     actionMap: {
       level(value: string) {
-        console.log('level change', value);
+        pintuIns.handleLevelChange(value)
       },
       sound(value: string) {
         console.log('sound change', value);

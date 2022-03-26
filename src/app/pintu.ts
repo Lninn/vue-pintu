@@ -1,5 +1,3 @@
-import { Control } from "./app"
-
 const PADDING = 36
 const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
 
@@ -107,70 +105,70 @@ function shuffle(items: Items) {
 }
 
 
+type PinState = {
+  fixedNo: number,
+  level: string,
+  items: Items,
+  itemWidth: number
+}
+
 export class Pintu {
-  canvas!: HTMLCanvasElement
-  ctx!: CanvasRenderingContext2D
+  private canvas!: HTMLCanvasElement
+  private ctx!: CanvasRenderingContext2D
 
-  itemWidth!: number
-  items!: Items
+  private audio: HTMLAudioElement = new Audio(AUDIO_URL)
 
-  audio: HTMLAudioElement = new Audio(AUDIO_URL)
+  private img: HTMLImageElement
 
-  control!: Control
+  private status: string = 'playing'
 
-  diffLevel: string = '1'
-  img: HTMLImageElement
-
-  status: string = 'playing'
-
-  fixedNo!: number
+  private state: PinState
 
   constructor(img: HTMLImageElement) {
     this.img = img
 
     this.initialize()
-
     this.bindEvents()
 
-    this.itemInited()
-
-    this.itemsInited(this.diffLevel)
-
-    this.controlInit()
+    this.state = createState(
+      // TODO
+      '1',
+      this.canvas.width
+    )
   }
 
-  controlInit() {
-    const self = this
+  // controlInit() {
+  //   const self = this
 
-    this.control = new Control({
-      onReStart() {
-        self.status = 'playing'
-        self.itemsInited(self.diffLevel)
-        self.draw()
-      },
-      onLevelChange(level: string) {
-        self.diffLevel = level
-        self.itemInited()
-        self.itemsInited(level)
-        self.draw()
-      },
-      onFileChange(img: any) {
-        self.img = img
+  //   this.control = new Control({
+  //     onReStart() {
+  //       self.status = 'playing'
+  //       self.itemsInited(self.diffLevel)
+  //       self.draw()
+  //     },
+  //     onLevelChange() {
+  //       self.diffLevel = level
+  //       self.itemInited()
+  //       self.itemsInited(level)
+  //       self.draw()
+  //     },
+  //     onFileChange(img: any) {
+  //       self.img = img
 
-        self.itemsInited(self.diffLevel)
-        self.draw()
-      },
-      onAudioPlay(txt: string) {
-        if (txt === '音效') {
-          self.audio.volume = 60 / 100
-        } else {
-          self.audio.volume = 0
-        }
-      }
-    })
-  }
+  //       self.itemsInited(self.diffLevel)
+  //       self.draw()
+  //     },
+  //     onAudioPlay(txt: string) {
+  //       if (txt === '音效') {
+  //         self.audio.volume = 60 / 100
+  //       } else {
+  //         self.audio.volume = 0
+  //       }
+  //     }
+  //   })
+  // }
 
-  initialize() {
+  private initialize() {
     const container = document.querySelector("#app");
     if (!container) return;
 
@@ -190,56 +188,18 @@ export class Pintu {
     container.appendChild(canvas);
   }
 
-  itemInited() {
-    const cWidth = this.canvas.width - PADDING * 2
-
-    const { COL_COUNT } = tableCount[this.diffLevel]
-    this.itemWidth = cWidth / COL_COUNT
-  }
-
-  itemsInited(level: string) {
-    const items = this.createItems(level)
-    shuffle(items)
-
-    this.items = items
-  }
-
-  bindEvents() {
+  private  bindEvents() {
     const canvas = this.canvas
 
     canvas.addEventListener('click', this.handleClick.bind(this))
   }
 
-  createItems (level: string)  {
-    const items: Items = []
-  
-    const { ROW_COUNT, COL_COUNT } = tableCount[level]
-
-    this.fixedNo =  ROW_COUNT * COL_COUNT - 1
-  
-    for (let i = 0; i < ROW_COUNT; i++) {
-      items[i] = []
-  
-      for (let j = 0; j < COL_COUNT; j++) {
-        let color = getRandomColor()
-        const no = i * ROW_COUNT + j
-        const isFixed = no === this.fixedNo
-  
-        items[i][j] = {
-          id: no,
-          color: isFixed ? '#ffffff' : color,
-          tag: isFixed ? 0 : 1
-        }
-      }
-    }
-    
-    return items
-  }
-
-  handleClick(e: MouseEvent) {
+  private handleClick(e: MouseEvent) {
     if (this.status === 'end') return
 
-    const CELL_SIZE = this.itemWidth
+    const state = this.state
+
+    const CELL_SIZE = state.itemWidth
 
     const { clientX, clientY } = e
 
@@ -251,21 +211,21 @@ export class Pintu {
     const row = Math.floor(offsetY / CELL_SIZE)
     const col = Math.floor(offsetX / CELL_SIZE)
 
-    const pos = findFixedItemPos(this.items)
+    const pos = findFixedItemPos(state.items)
 
     if (pos?.row === row && pos.col === col) return
 
     let run = true
     if (row === pos?.row && Math.abs(col - pos?.col) === 1) {
-      swapItem(this.items, pos, { row, col })
+      swapItem(state.items, pos, { row, col })
     } else if (col === pos?.col && Math.abs(row - pos?.row) === 1) {
-      swapItem(this.items, pos, { row, col })
+      swapItem(state.items, pos, { row, col })
     } else {
       run = false
     }
 
     if (run) {
-      this.control.recordStep()
+      // this.control.recordStep()
 
       this.draw()
 
@@ -275,18 +235,19 @@ export class Pintu {
     }
   }
 
-  check() {
+  private check() {
     const noList = []
+    const state = this.state
 
     const str = Array.from({
-      length: this.items.flat().length
+      length: state.items.flat().length
     }).map((_, idx) => idx).join(',')
 
-    const { ROW_COUNT, COL_COUNT } = tableCount[this.diffLevel]
+    const { ROW_COUNT, COL_COUNT } = tableCount[state.level]
 
     for (let i = 0; i < ROW_COUNT; i++) {
       for (let j = 0; j < COL_COUNT; j++) {
-        const item = this.items[i][j]
+        const item = state.items[i][j]
         noList.push(item.id)
       }
     }
@@ -299,7 +260,7 @@ export class Pintu {
   }
 
 
-  playAudio() {
+  private playAudio() {
     this.audio.pause()
     this.audio.currentTime = 0
 
@@ -308,6 +269,8 @@ export class Pintu {
 
 
   draw() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
     if (this.status === 'playing') {
       this.drawItems()
     } else {
@@ -315,13 +278,15 @@ export class Pintu {
     }
   }
 
-  drawItems() {
-    const CELL_SIZE = this.itemWidth
-    const { ROW_COUNT, COL_COUNT } = tableCount[this.diffLevel]
+  private drawItems() {
+    const state = this.state
+
+    const CELL_SIZE = state.itemWidth
+    const { ROW_COUNT, COL_COUNT } = tableCount[state.level]
 
     for (let i = 0; i < ROW_COUNT; i++) {
       for (let j = 0; j < COL_COUNT; j++) {
-        const item = this.items[i][j]
+        const item = state.items[i][j]
         this.ctx.fillStyle = item.color
 
         const __x = item.id % 3
@@ -351,19 +316,20 @@ export class Pintu {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
         }
 
+        console.log(item.id);
+        
+
         this.drawText(
           item.id.toString(),
           j * CELL_SIZE + CELL_SIZE / 2 + PADDING,
           i * CELL_SIZE + CELL_SIZE / 2 + PADDING,
-          '#ffffff'
+          'red'
         )
       }
     }
   }
 
-  drawEnd() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-
+  private drawEnd() {
     this.drawItems()
 
     this.drawText(
@@ -371,11 +337,57 @@ export class Pintu {
     )
   }
 
-  drawText(text: string, x: number, y: number, fillStyle: string) {
+  private drawText(text: string, x: number, y: number, fillStyle: string) {
     this.ctx.fillStyle = fillStyle
-    this.ctx.font = '30px Arial'
+    this.ctx.font = '18px Arial'
     this.ctx.textAlign = 'center'
     this.ctx.textBaseline = 'middle'
     this.ctx.fillText(text, x, y)
   }
+
+  public handleLevelChange(level: string) {
+    const state = createState(level, this.canvas.width)
+    this.state = state
+
+    console.log(state);
+
+    this.draw()
+  }
+}
+
+function createState(level: string, canvasWidth: number) {
+  const items: Items = []
+  
+  const { ROW_COUNT, COL_COUNT } = tableCount[level]
+
+  const fixedNo =  ROW_COUNT * COL_COUNT - 1
+
+  for (let i = 0; i < ROW_COUNT; i++) {
+    items[i] = []
+
+    for (let j = 0; j < COL_COUNT; j++) {
+      let color = getRandomColor()
+      const no = i * ROW_COUNT + j
+      const isFixed = no === fixedNo
+
+      items[i][j] = {
+        id: no,
+        color: isFixed ? '#ffffff' : color,
+        tag: isFixed ? 0 : 1
+      }
+    }
+  }
+
+  shuffle(items)
+
+  const itemWidth = (canvasWidth - PADDING * 2) / COL_COUNT
+
+  const newState: PinState = {
+    fixedNo,
+    level,
+    items,
+    itemWidth
+  }
+ 
+  return newState
 }
