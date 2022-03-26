@@ -12,26 +12,35 @@ interface Actions {
 }
 
 export class AudioEffect {
-  private audio: HTMLAudioElement
+  private audio: HTMLAudioElement | null = null
 
   constructor() {
-    this.audio = new Audio()
-    this.audio.src = AUDIO_URL
+    this.reset()
   }
 
   public play() {
-    this.audio.pause()
-    this.audio.currentTime = 0
+    if (this.audio) {
+      this.audio.currentTime = 0
 
-    this.audio.play()
+      this.audio.play()
+    }
   }
 
   public toggle(value: string) {
     if(value === '0') {
-      this.audio.muted = false
+      this.reset()
     } else {
-      this.audio.muted = true
+      this.clear()
     }
+  }
+
+  reset() {
+    this.audio = new Audio()
+    this.audio.src = AUDIO_URL
+  }
+
+  clear() {
+    this.audio = null
   }
 }
 
