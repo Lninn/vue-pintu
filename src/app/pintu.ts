@@ -176,11 +176,15 @@ export class Pintu {
 
     const canvas = document.createElement("canvas");
 
-    canvas.width = appWidth;
-    canvas.height = appWidth;
+    const isVertical = this.img.height > this.img.width
+    const compareWidth = isVertical ? this.img.width : this.img.height
+    const useWidth = compareWidth > appWidth ? appWidth : compareWidth
 
-    canvas.style.width = appWidth + 'px';
-    canvas.style.height = appWidth + 'px';
+    canvas.width = useWidth;
+    canvas.height = useWidth;
+
+    canvas.style.width = useWidth + 'px';
+    canvas.style.height = useWidth + 'px';
 
     this.canvas = canvas
     this.ctx = canvas.getContext('2d') as CanvasRenderingContext2D
@@ -289,8 +293,8 @@ export class Pintu {
         const item = state.items[i][j]
         this.ctx.fillStyle = item.color
 
-        const __x = item.id % 3
-        const __y = Math.floor(item.id / 3)
+        const __x = item.id % ROW_COUNT
+        const __y = Math.floor(item.id / COL_COUNT)
 
         if (this.img) {
           const isDrawImage = this.status === 'end' ? true : item.tag === 1
@@ -298,6 +302,7 @@ export class Pintu {
           if(isDrawImage) {
             const imgWidth = this.img.width / ROW_COUNT
             const imgHeight = this.img.height / COL_COUNT
+            
             this.ctx.drawImage(
               this.img,
               __x * imgWidth,
@@ -316,14 +321,11 @@ export class Pintu {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
         }
 
-        console.log(item.id);
-        
-
         this.drawText(
           item.id.toString(),
           j * CELL_SIZE + CELL_SIZE / 2 + PADDING,
           i * CELL_SIZE + CELL_SIZE / 2 + PADDING,
-          'red'
+          '#fff'
         )
       }
     }
