@@ -3,7 +3,6 @@ import { Control } from "./app"
 const PADDING = 36
 const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
 
-
 const tableCount: any = {
   "1": {
     ROW_COUNT: 3,
@@ -38,16 +37,9 @@ type Item = {
 
 type Items = Item[][]
 
-
-
-
-
 function randomIntFromInterval(min: number, max: number) { // min and max included 
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
-
-
-
 
 function findFixedItemPos(items: Items) {
   for (let i = 0; i < items.length; i++) {
@@ -359,11 +351,12 @@ export class Pintu {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
         }
 
-        this.ctx.fillStyle = '#ffffff'
-        this.ctx.font = '30px Arial'
-        this.ctx.textAlign = 'center'
-        this.ctx.textBaseline = 'middle'
-        this.ctx.fillText(item.id.toString(), j * CELL_SIZE + CELL_SIZE / 2 + PADDING, i * CELL_SIZE + CELL_SIZE / 2 + PADDING)
+        this.drawText(
+          item.id.toString(),
+          j * CELL_SIZE + CELL_SIZE / 2 + PADDING,
+          i * CELL_SIZE + CELL_SIZE / 2 + PADDING,
+          '#ffffff'
+        )
       }
     }
   }
@@ -373,10 +366,16 @@ export class Pintu {
 
     this.drawItems()
 
-    this.ctx.fillStyle = getRandomColor()
-    this.ctx.font = '60px Arial'
+    this.drawText(
+      '游戏结束', this.canvas.width / 2, this.canvas.height / 2, getRandomColor()
+    )
+  }
+
+  drawText(text: string, x: number, y: number, fillStyle: string) {
+    this.ctx.fillStyle = fillStyle
+    this.ctx.font = '30px Arial'
     this.ctx.textAlign = 'center'
     this.ctx.textBaseline = 'middle'
-    this.ctx.fillText('游戏结束', this.canvas.width / 2, this.canvas.height / 2)
+    this.ctx.fillText(text, x, y)
   }
 }
