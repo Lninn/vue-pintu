@@ -51,6 +51,13 @@ canvas {
   min-width: max-content;
 }
 
-.form-control {
+.form-control,
+.form-control select {
   font-size: 18px;
+}
+
+.form-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

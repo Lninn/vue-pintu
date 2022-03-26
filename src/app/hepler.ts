@@ -37,6 +37,8 @@ const CONFIG = [
   }
 ]
 
+type Element = typeof CONFIG[number]
+
 type ActionCallback = (payload: string) => void
 type ActionMap = Record<ActionType, ActionCallback>
 
@@ -60,38 +62,67 @@ export class Manager {
   }
 
   initilize() {
-    const elements = this.createElements()
-    for (const element of elements) {
-      this.container.appendChild(element)
+    const nodes = this.createNodes()
+
+    for (const node of nodes) {
+      this.container.appendChild(node)
     }
   }
 
-  createElements() {
-    const elements = []
+  createNodes() {
+    const nodes: HTMLDivElement[] = []
 
     for (const item of CONFIG) {
-      const select = document.createElement('select')
-      select.setAttribute('name', item.key)
-      select.setAttribute('value', item.value + '')
-      select.setAttribute('class', 'form-control')
-
-      const action = this.actionMap[item.key as ActionType]
-      if (action) {
-        select.addEventListener('change', () => {
-          action(select.value)
-        })
-      }
-
-      for (const option of item.options) {
-        const optionElement = document.createElement('option')
-        optionElement.setAttribute('value', option.value + '')
-        optionElement.innerHTML = option.label
-        select.appendChild(optionElement)
-      }
-
-      elements.push(select)
+      const element = this.createSelectElement(item)
+      nodes.push(element)
     }
 
-    return elements
+    return nodes
+  }
+
+  createSelectElement(element: Element) {
+    const box = document.createElement('div')
+    box.setAttribute('class', 'form-control')
+
+    const label = document.createElement('span')
+    label.innerText = element.label
+
+    const value = document.createElement('span')
+    value.innerText = element.value.toString()
+
+    const select = document.createElement('select')
+    select.setAttribute('name', element.key)
+    select.setAttribute('value', element.value + '')
+    
+    const action = this.actionMap[element.key as ActionType]
+    if (action) {
+      select.addEventListener('change', (e) => {
+        const currentElement = e.target as HTMLSelectElement
+
+        const valueElement = currentElement.previousElementSibling as HTMLSpanElement
+        valueElement.innerText = currentElement.value
+        
+        action(select.value)
+      })
+    }
+
+    for (const option of element.options) {
+      const optionElement = document.createElement('option')
+      optionElement.setAttribute('value', option.value + '')
+      optionElement.innerHTML = option.label
+      select.appendChild(optionElement)
+    }
+
+    box.appendChild(
+      label,
+    )
+    box.appendChild(
+      value,
+    )
+    box.appendChild(
+      select,
+    )
+
+    return box
   }
 }
