@@ -1,5 +1,6 @@
+import { AudioEffect } from "./app";
+
 const PADDING = 36
-const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
 
 const tableCount: any = {
   "1": {
@@ -116,16 +117,17 @@ export class Pintu {
   private canvas!: HTMLCanvasElement
   private ctx!: CanvasRenderingContext2D
 
-  private audio: HTMLAudioElement = new Audio(AUDIO_URL)
-
   private img: HTMLImageElement
 
   private status: string = 'playing'
 
   private state: PinState
 
-  constructor(img: HTMLImageElement) {
+  private audioEffect: AudioEffect
+
+  constructor(img: HTMLImageElement, audioEffect: AudioEffect) {
     this.img = img
+    this.audioEffect = audioEffect
 
     this.initialize()
     this.bindEvents()
@@ -229,11 +231,10 @@ export class Pintu {
     }
 
     if (run) {
+      this.audioEffect.play()
       // this.control.recordStep()
 
       this.draw()
-
-      this.playAudio()
 
       this.check()
     }
@@ -261,14 +262,6 @@ export class Pintu {
       
       this.draw()
     }
-  }
-
-
-  private playAudio() {
-    this.audio.pause()
-    this.audio.currentTime = 0
-
-    this.audio.play()
   }
 
 

@@ -2,13 +2,37 @@ import { Pintu } from "./pintu"
 import { Manager } from './hepler'
 
 const IMAGE = 'https://cdn.pixabay.com/photo/2022/01/17/06/38/altai-6943982_960_720.jpg'
-
+const AUDIO_URL = 'https://img.tukuppt.com/newpreview_music/09/00/74/5c8949da6e66559783.mp3'
 
 interface Actions {
   onReStart: () => void
   onLevelChange: (level: string) => void
   onFileChange: (file: any) => void
   onAudioPlay: (txt: string) => any
+}
+
+export class AudioEffect {
+  private audio: HTMLAudioElement
+
+  constructor() {
+    this.audio = new Audio()
+    this.audio.src = AUDIO_URL
+  }
+
+  public play() {
+    this.audio.pause()
+    this.audio.currentTime = 0
+
+    this.audio.play()
+  }
+
+  public toggle(value: string) {
+    if(value === '0') {
+      this.audio.muted = false
+    } else {
+      this.audio.muted = true
+    }
+  }
 }
 
 
@@ -129,7 +153,9 @@ const main = async () => {
     new Date().getTime() - begin.getTime()
   )
 
-  const pintuIns = new Pintu(img)
+  const audioEffect = new AudioEffect()
+
+  const pintuIns = new Pintu(img, audioEffect)
 
   new Manager({
     actionMap: {
@@ -137,8 +163,7 @@ const main = async () => {
         pintuIns.handleLevelChange(value)
       },
       sound(value: string) {
-        console.log('sound change', value);
-        
+        audioEffect.toggle(value)
       }
     },
   })

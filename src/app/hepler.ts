@@ -95,27 +95,3 @@ export class Manager {
     return elements
   }
 }
-
-export class AudioEffect {
-  private audio: HTMLAudioElement
-
-  constructor() {
-    this.audio = new Audio()
-  }
-
-  play() {
-    this.audio.play() 
-  }
-
-  pause() {
-    this.audio.pause()
-  }
-
-  mute() {
-    this.audio.muted = true
-  }
-
-  setSrc(src: string) {
-    this.audio.src = src
-  }
-}
