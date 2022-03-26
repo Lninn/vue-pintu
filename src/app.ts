@@ -131,32 +131,23 @@ function swapItem(items: Items, from: Pos, to: Pos) {
   items[to.row][to.col] = fromItem
 }
 
+interface Actions {
+  onReStart: () => void
+  onLevelChange: (level: string) => void
+  onFileChange: (file: any) => void
+  onAudioPlay: (txt: string) => any
+}
+
 
 class Control {
   private stepEl: HTMLSpanElement | null = null
   private stepCount: number = 0
 
+  actions: Actions
 
-  onReStart: () => void = () => { }
-  onLevelChange: (level: string) => void
-  onFileChange: (file: any) => void
-  onAudioPlay: (txt: string) => any
+  constructor(actions: Actions) {
+    this.actions = actions
 
-  constructor({
-    onReStart,
-    onLevelChange,
-    onFileChange,
-    onAudioPlay
-  }: {
-    onReStart: () => void
-    onLevelChange: (level: string) => void
-    onFileChange: (file: any) => void
-    onAudioPlay: (txt: string) => any
-  }) {
-    this.onReStart = onReStart
-    this.onLevelChange = onLevelChange
-    this.onFileChange = onFileChange
-    this.onAudioPlay = onAudioPlay
     this.initialize()
   }
 
@@ -170,7 +161,7 @@ class Control {
     if (!reStart) return
 
     reStart.onclick = () => {
-      this.onReStart()
+      this.actions.onReStart()
 
       this.stepCount = 0
       this.drawStep()
@@ -181,7 +172,7 @@ class Control {
 
     diff.onchange = (e: any) => {
       const level = e.target.value
-      this.onLevelChange(level)
+      this.actions.onLevelChange(level)
 
       this.stepCount = 0
       this.drawStep()
@@ -200,7 +191,7 @@ class Control {
       function createImage() {
         const img = new Image();
         img.onload = () => {
-          self.onFileChange(img)
+          self.actions.onFileChange(img)
         };
         img.src = reader.result as any;
       }
@@ -213,10 +204,10 @@ class Control {
       const txt = audio.innerHTML
       if (txt === '音效') {
         audio.innerHTML = '静音'
-        this.onAudioPlay('静音')
+        this.actions.onAudioPlay('静音')
       } else {
         audio.innerHTML = '音效'
-        this.onAudioPlay('音效')
+        this.actions.onAudioPlay('音效')
       }
     }
 
