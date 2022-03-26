@@ -241,6 +241,8 @@ class Pintu {
   diffLevel: string = '1'
   img: HTMLImageElement | null = null
 
+  status: string = 'playing'
+
   constructor() {
     this.initialize()
 
@@ -258,20 +260,21 @@ class Pintu {
 
     this.control = new Control({
       onReStart() {
+        self.status = 'playing'
         self.itemsInited(self.diffLevel)
-        self.drawItems()
+        self.draw()
       },
       onLevelChange(level: string) {
         self.diffLevel = level
         self.itemInited()
         self.itemsInited(level)
-        self.drawItems()
+        self.draw()
       },
       onFileChange(img: any) {
         self.img = img
 
         self.itemsInited(self.diffLevel)
-        self.drawItems()
+        self.draw()
       },
       onAudioPlay(txt: string) {
         if (txt === '音效') {
@@ -324,6 +327,8 @@ class Pintu {
   }
 
   handleClick(e: MouseEvent) {
+    if (this.status === 'end') return
+
     const CELL_SIZE = this.itemWidth
 
     const { clientX, clientY } = e
@@ -352,7 +357,7 @@ class Pintu {
     if (run) {
       this.control.recordStep()
 
-      this.drawItems()
+      this.draw()
 
       this.playAudio()
 
@@ -373,7 +378,9 @@ class Pintu {
     }
 
     if (noList.toString() === str) {
-      alert('win')
+      this.status = 'end'
+      
+      this.draw()
     }
   }
 
@@ -385,6 +392,14 @@ class Pintu {
     this.audio.play()
   }
 
+
+  draw() {
+    if (this.status === 'playing') {
+      this.drawItems()
+    } else {
+      this.drawEnd()
+    }
+  }
 
   drawItems() {
     const CELL_SIZE = this.itemWidth
@@ -428,11 +443,20 @@ class Pintu {
       }
     }
   }
+
+  drawEnd() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.fillStyle = getRandomColor()
+    this.ctx.font = '60px Arial'
+    this.ctx.textAlign = 'center'
+    this.ctx.textBaseline = 'middle'
+    this.ctx.fillText('游戏结束', this.canvas.width / 2, this.canvas.height / 2)
+  }
 }
 
 
 const pintuIns = new Pintu()
-pintuIns.drawItems()
+pintuIns.draw()
 
 
 console.log(pintuIns)
