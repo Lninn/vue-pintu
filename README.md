@@ -1,3 +1,3 @@
 # vue-pintu
 
-test
+view https://pintu-m.netlify.app/
