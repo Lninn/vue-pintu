@@ -121,6 +121,8 @@ export class Pintu {
 
   private state: PinState
 
+  private showNo: boolean = true
+
   onMove: (() => void) | null = null
 
   constructor(img: HTMLImageElement) {
@@ -135,33 +137,14 @@ export class Pintu {
       this.canvas.width
     )
   }
-
-  // controlInit() {
-  //   const self = this
-
-  //   this.control = new Control({
-
-  //     onLevelChange() {
-  //       self.diffLevel = level
-  //       self.itemInited()
-  //       self.itemsInited(level)
-  //       self.draw()
-  //     },
+ 
   //     onFileChange(img: any) {
   //       self.img = img
 
   //       self.itemsInited(self.diffLevel)
   //       self.draw()
   //     },
-  //     onAudioPlay(txt: string) {
-  //       if (txt === '音效') {
-  //         self.audio.volume = 60 / 100
-  //       } else {
-  //         self.audio.volume = 0
-  //       }
-  //     }
-  //   })
-  // }
+  
 
   private initialize() {
     const container = document.querySelector("#app");
@@ -256,12 +239,12 @@ export class Pintu {
     }
   }
 
-
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
     if (this.status === 'playing') {
       this.drawItems()
+      this.drawNumber()
     } else {
       this.drawEnd()
     }
@@ -305,7 +288,20 @@ export class Pintu {
         } else {
           this.ctx.fillRect(j * CELL_SIZE + PADDING, i * CELL_SIZE + PADDING, CELL_SIZE, CELL_SIZE)
         }
+      }
+    }
+  }
 
+  drawNumber() {
+    if (!this.showNo) return
+    
+    const state = this.state
+
+    const CELL_SIZE = state.itemWidth
+
+    for (let i = 0; i < state.items.length; i++) {
+      for (let j = 0; j < state.items[i].length; j++) {
+        const item = state.items[i][j]
         this.drawText(
           item.id.toString(),
           j * CELL_SIZE + CELL_SIZE / 2 + PADDING,
@@ -350,6 +346,12 @@ export class Pintu {
 
   public getCanvas() {
     return this.canvas
+  }
+
+  public toggleShowNo() {
+    this.showNo = !this.showNo
+
+    this.draw()
   }
 }
 

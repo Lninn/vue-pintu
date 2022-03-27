@@ -192,7 +192,7 @@ const main = async () => {
         self.clearLabelByKey('stepCount')
       },
       showNo() {
-        console.log('showNo');
+        pintuIns.toggleShowNo()
       },
       stepCount() {
         console.log('stepCount');

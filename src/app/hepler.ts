@@ -30,7 +30,7 @@ const CONFIG: Element[] = [
   },
   {
     key: 'showNo',
-    label: '显示数字',
+    label: '数字提示',
   },
   {
     key: 'stepCount',
