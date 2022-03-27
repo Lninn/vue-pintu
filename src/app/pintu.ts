@@ -185,6 +185,8 @@ export class Pintu {
     const row = Math.floor(offsetY / CELL_SIZE)
     const col = Math.floor(offsetX / CELL_SIZE)
 
+    if (row < 0 || col < 0 || row >= state.items.length || col >= state.items[0].length) return
+
     const pos = findFixedItemPos(state.items)
 
     if (pos?.row === row && pos.col === col) return
