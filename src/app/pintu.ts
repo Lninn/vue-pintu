@@ -347,7 +347,7 @@ function createState(level: string, canvasWidth: number) {
   
   const { ROW_COUNT, COL_COUNT } = tableCount[level]
 
-  const fixedNo =  0
+  const fixedNo =  ROW_COUNT * COL_COUNT - 1
 
   for (let i = 0; i < ROW_COUNT; i++) {
     items[i] = []
