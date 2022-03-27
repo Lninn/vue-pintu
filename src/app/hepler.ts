@@ -1,48 +1,73 @@
 type ActionType = 'level' | 'sound'
 
-const CONFIG = [
+interface TextElement extends Pick<Object, 'hasOwnProperty'> {
+  key: string
+  label: string
+  value: string
+}
+
+interface ButtonElement extends Pick<Object, 'hasOwnProperty'> {
+  key: string
+  label: string
+}
+
+interface SelectElement extends Pick<Object, 'hasOwnProperty'> {
+  key: string
+  label: string
+  value: string
+  options: {
+    value: string
+    label: string
+  }[]
+}
+
+type Element = TextElement | ButtonElement | SelectElement
+
+const CONFIG: Element[] = [
+  {
+    key: 'restart',
+    label: '重新开始',
+  },
   {
     key: 'stepCount',
-    value: 0,
+    value: '0',
     label: '步数',
   },
   {
     key: 'level',
-    value: 1,
+    value: '1',
     label: '难度',
     options: [
       {
-        value: 1,
+        value: '1',
         label: '简单',
       },
       {
-        value: 2,
+        value: '2',
         label: '正常',
       },
       {
-        value: 3,
+        value: '3',
         label: '难度',
       }
     ]
   },
   {
     key: 'sound',
-    value: 0,
+    value: '0',
     label: '声音',
     options: [
       {
-        value: 0,
+        value: '0',
         label: '正常',
       },
       {
-        value: 1,
+        value: '1',
         label: '静音',
       },
     ],
   },
 ]
-
-type Element = typeof CONFIG[number]
 
 type ActionCallback = (payload: string) => void
 type ActionMap = Record<ActionType, ActionCallback>
@@ -70,25 +95,53 @@ export class Manager {
     const nodes = this.createNodes()
 
     for (const node of nodes) {
-      this.container.appendChild(node)
+      if(node) {
+        this.container.appendChild(node)
+      }
+    }
+  }
+
+  appendNode(container: HTMLDivElement, node: any) {
+    if(Array.isArray(node)) {
+      for (const n of node) {
+        container.appendChild(n)
+      }
+    } else {
+      container.appendChild(node)
     }
   }
 
   createNodes() {
-    const nodes: HTMLDivElement[] = []
+    const nodes: any[] = []
 
-    for (const item of CONFIG) {
-      const element = this.createSelectElement(item)
-      nodes.push(element)
+    for (const elemet of CONFIG) {
+      const box = document.createElement('div')
+      box.setAttribute('class', 'form-control')
+
+      this.appendNode(
+        box,
+        this.createNode(elemet)
+      )
+
+      nodes.push(box)
     }
 
     return nodes
   }
 
-  createSelectElement(element: Element) {
-    const box = document.createElement('div')
-    box.setAttribute('class', 'form-control')
+  createNode(element: Element) {
+    if (element.hasOwnProperty('value')) {
+      if (element.hasOwnProperty('options')) {
+        return this.createSelectNode(element as SelectElement)
+      }
 
+      return this.createTextNode(element as TextElement)
+    }
+
+    return this.createButtonNode(element)
+  }
+
+  createTextNode(element: TextElement) {
     const label = document.createElement('span')
     label.innerText = element.label
 
@@ -96,48 +149,63 @@ export class Manager {
     value.innerText = element.value.toString()
     value.dataset.key = element.key
 
-    box.appendChild(
+    this.container.addEventListener(element.key, () => {
+      const target = document.querySelector(`[data-key="${element.key}"]`) as HTMLSpanElement
+      target.innerText = String(+target.innerText + 1)
+    })
+
+    return [
       label,
-    )
-    box.appendChild(
-      value,
-    )
+      value
+    ]
+  }
 
-    if (element.options) {
-      const select = document.createElement('select')
-      select.setAttribute('name', element.key)
-      select.setAttribute('value', element.value + '')
-      
-      const action = this.actionMap[element.key as ActionType]
-      if (action) {
-        select.addEventListener('change', (e) => {
-          const currentElement = e.target as HTMLSelectElement
+  createButtonNode(element: ButtonElement) {
+    const button = document.createElement('button')
+    button.innerText = element.label
 
-          const valueElement = currentElement.previousElementSibling as HTMLSpanElement
-          valueElement.innerText = currentElement.value
-          
-          action(select.value)
-        })
-      }
+    button.addEventListener('click', () => {
+      console.log('click');
+    })
 
-      for (const option of element.options) {
-        const optionElement = document.createElement('option')
-        optionElement.setAttribute('value', option.value + '')
-        optionElement.innerHTML = option.label
-        select.appendChild(optionElement)
-      }
+    return [button]
+  }
 
-      box.appendChild(
-        select,
-      )
-    } else {
-      this.container.addEventListener(element.key, () => {
-        const target = document.querySelector(`[data-key="${element.key}"]`) as HTMLSpanElement
-        target.innerText = String(+target.innerText + 1)
+  createSelectNode(element: SelectElement) {
+    const label = document.createElement('span')
+    label.innerText = element.label
+
+    const value = document.createElement('span')
+    value.innerText = element.value.toString()
+    value.dataset.key = element.key
+
+    const select = document.createElement('select')
+    select.setAttribute('name', element.key)
+    select.setAttribute('value', element.value + '')
+    
+    const action = this.actionMap[element.key as ActionType]
+    if (action) {
+      select.addEventListener('change', (e) => {
+        const currentElement = e.target as HTMLSelectElement
+
+        const valueElement = currentElement.previousElementSibling as HTMLSpanElement
+        valueElement.innerText = currentElement.value
+        
+        action(select.value)
       })
-      
     }
 
-    return box
+    for (const option of element.options) {
+      const optionElement = document.createElement('option')
+      optionElement.setAttribute('value', option.value + '')
+      optionElement.innerHTML = option.label
+      select.appendChild(optionElement)
+    }
+
+    return [
+      label,
+      value,
+      select
+    ]
   }
 }

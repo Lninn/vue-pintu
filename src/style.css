@@ -52,7 +52,8 @@ canvas {
 }
 
 .form-control,
-.form-control select {
+.form-control select,
+.form-control button {
   font-size: 18px;
 }
 
@@ -60,4 +61,8 @@ canvas {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.form-control span:nth-of-type(1) {
+  width: 7ch;
 }
