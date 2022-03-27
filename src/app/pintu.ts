@@ -1,4 +1,4 @@
-const PADDING = 36
+const PADDING = 16
 
 const tableCount: any = {
   "1": {
@@ -138,14 +138,6 @@ export class Pintu {
     )
   }
  
-  //     onFileChange(img: any) {
-  //       self.img = img
-
-  //       self.itemsInited(self.diffLevel)
-  //       self.draw()
-  //     },
-  
-
   private initialize() {
     const container = document.querySelector("#app");
     if (!container) return;

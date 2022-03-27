@@ -102,11 +102,16 @@ export class Manager {
   initilize() {
     const nodes = this.createNodes()
 
+    const formControlList = document.createElement('div')
+    formControlList.setAttribute('class', 'form-control-list')
+
     for (const node of nodes) {
       if(node) {
-        this.container.appendChild(node)
+        formControlList.appendChild(node)
       }
     }
+
+    this.container.appendChild(formControlList)
   }
 
   appendNode(container: HTMLDivElement, node: any) {

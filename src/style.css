@@ -12,49 +12,22 @@ body {
   height: 100%;
 }
 
-canvas {
-  box-sizing: border-box;
-  border: 1px solid #666;
-}
-
-.Item {
-  position: absolute;
-}
-
-.Item:hover {
-  opacity: 0.85;
-  cursor: grab;
-}
-
-.Controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  padding: 12px;
-}
-
-.Controls,
-.Controls button,
-.Controls select,
-.Controls input {
-  font-size: 18px;
-}
-
-.Controls > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-#audio {
-  min-width: max-content;
-}
-
 .form-control,
 .form-control select,
 .form-control button {
   font-size: 18px;
+}
+
+.form-control button,
+.form-control select {
+  border: none;
+  outline: none;
+  background: none;
+}
+
+.form-control button {
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
 .form-control {
@@ -65,4 +38,13 @@ canvas {
 
 .form-control span:nth-of-type(1) {
   width: 7ch;
+}
+
+.form-control-list {
+  margin-left: 16px;
+  margin-right: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
