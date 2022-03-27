@@ -184,6 +184,19 @@ const main = async () => {
       },
       sound(value: string) {
         audioEffect.toggle(value)
+      },
+      restart() {
+        pintuIns.handleRestart()
+        const self = this as unknown as Manager
+
+        self.clearLabelByKey('stepCount')
+      },
+      showNo() {
+        console.log('showNo');
+      },
+      stepCount() {
+        console.log('stepCount');
+        
       }
     },
   })

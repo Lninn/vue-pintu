@@ -140,11 +140,7 @@ export class Pintu {
   //   const self = this
 
   //   this.control = new Control({
-  //     onReStart() {
-  //       self.status = 'playing'
-  //       self.itemsInited(self.diffLevel)
-  //       self.draw()
-  //     },
+
   //     onLevelChange() {
   //       self.diffLevel = level
   //       self.itemInited()
@@ -340,7 +336,14 @@ export class Pintu {
     const state = createState(level, this.canvas.width)
     this.state = state
 
-    console.log(state);
+    this.draw()
+  }
+
+  public handleRestart() {
+    this.status = 'playing'
+
+    const state = createState(this.state.level, this.canvas.width)
+    this.state = state
 
     this.draw()
   }

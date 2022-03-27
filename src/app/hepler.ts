@@ -1,4 +1,4 @@
-type ActionType = 'level' | 'sound'
+type ActionType = 'level' | 'sound' | 'stepCount' | 'restart' | 'showNo'
 
 interface TextElement extends Pick<Object, 'hasOwnProperty'> {
   key: string
@@ -27,6 +27,10 @@ const CONFIG: Element[] = [
   {
     key: 'restart',
     label: '重新开始',
+  },
+  {
+    key: 'showNo',
+    label: '显示数字',
   },
   {
     key: 'stepCount',
@@ -163,10 +167,14 @@ export class Manager {
   createButtonNode(element: ButtonElement) {
     const button = document.createElement('button')
     button.innerText = element.label
+    const self = this
 
-    button.addEventListener('click', () => {
-      console.log('click');
-    })
+    const action = this.actionMap[element.key as ActionType]
+    if (action) {
+      button.addEventListener('click', () => {
+        action.apply(self, [element.key])
+      })
+    }
 
     return [button]
   }
@@ -207,5 +215,10 @@ export class Manager {
       value,
       select
     ]
+  }
+
+  public clearLabelByKey(key: ActionType) {
+    const target = document.querySelector(`[data-key="${key}"]`) as HTMLSpanElement
+    target.innerText = '0'
   }
 }
