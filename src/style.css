@@ -12,6 +12,12 @@ body {
   height: 100%;
 }
 
+@media (min-width: 768px) {
+  #app {
+    display: flex;
+  }
+}
+
 .form-control,
 .form-control select,
 .form-control button {
@@ -41,9 +47,8 @@ body {
 }
 
 .form-control-list {
-  margin-left: 16px;
-  margin-right: 16px;
-
+  margin: 16px;
+  
   display: flex;
   flex-direction: column;
   gap: 8px;
