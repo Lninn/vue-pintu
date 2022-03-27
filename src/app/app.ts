@@ -169,8 +169,12 @@ const main = async () => {
   pintuIns.onMove = () => {
     audioEffect.play()
 
-    const event = new Event('stepCount')
-    document.dispatchEvent(event)
+    const canvas = pintuIns.getCanvas()
+
+    const event = new Event('stepCount', {
+      bubbles: true,
+    })
+    canvas.dispatchEvent(event)
   }
 
   new Manager({

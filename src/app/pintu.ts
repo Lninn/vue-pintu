@@ -344,6 +344,10 @@ export class Pintu {
 
     this.draw()
   }
+
+  public getCanvas() {
+    return this.canvas
+  }
 }
 
 function createState(level: string, canvasWidth: number) {

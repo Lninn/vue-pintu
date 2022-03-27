@@ -94,6 +94,7 @@ export class Manager {
 
     const value = document.createElement('span')
     value.innerText = element.value.toString()
+    value.dataset.key = element.key
 
     box.appendChild(
       label,
@@ -130,11 +131,11 @@ export class Manager {
         select,
       )
     } else {
-      document.addEventListener(element.key, (e) => {
-        const currentElement = e.target as HTMLSpanElement
-        console.log('stepCountChange', e);
-        console.log(currentElement);
+      this.container.addEventListener(element.key, () => {
+        const target = document.querySelector(`[data-key="${element.key}"]`) as HTMLSpanElement
+        target.innerText = String(+target.innerText + 1)
       })
+      
     }
 
     return box
