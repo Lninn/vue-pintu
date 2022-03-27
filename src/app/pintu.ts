@@ -34,10 +34,6 @@ type Item = {
 
 type Items = Item[][]
 
-function randomIntFromInterval(min: number, max: number) { // min and max included 
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
 function findFixedItemPos(items: Items) {
   for (let i = 0; i < items.length; i++) {
     for (let j = 0; j < items[i].length; j++) {
@@ -66,41 +62,6 @@ function swapItem(items: Items, from: Pos, to: Pos) {
 
   items[from.row][from.col] = toItem
   items[to.row][to.col] = fromItem
-}
-
-function shuffle(items: Items) {
-  const s = 0
-  const e = 2
-
-  function shuffleItem() {
-    const r1 = randomIntFromInterval(s, e)
-    const c1 = randomIntFromInterval(s, e)
-
-    const r2 = randomIntFromInterval(s, e)
-    const c2 = randomIntFromInterval(s, e)
-
-    const tmp = items[r1][c1]
-    items[r1][c1] = items[r2][c2]
-    items[r2][c2] = tmp
-  }
-
-  function recover() {
-    const fixedPos = findFixedItemPos(items)
-
-    if (!fixedPos) return
-
-    if (fixedPos.row === 0 && fixedPos.col === 0) return
-
-    const tmp = items[0][0]
-    items[0][0] = items[fixedPos.row][fixedPos.col]
-    items[fixedPos.row][fixedPos.col] = tmp
-  }
-
-  for (let i = 0; i < 10; i++) {
-    shuffleItem()
-  }
-
-  recover()
 }
 
 
@@ -386,7 +347,7 @@ function createState(level: string, canvasWidth: number) {
   
   const { ROW_COUNT, COL_COUNT } = tableCount[level]
 
-  const fixedNo =  ROW_COUNT * COL_COUNT - 1
+  const fixedNo =  0
 
   for (let i = 0; i < ROW_COUNT; i++) {
     items[i] = []
@@ -404,16 +365,70 @@ function createState(level: string, canvasWidth: number) {
     }
   }
 
-  shuffle(items)
-
+  const newItems = shuffleItems(items, ROW_COUNT, COL_COUNT)
+  
   const itemWidth = (canvasWidth - PADDING * 2) / COL_COUNT
 
   const newState: PinState = {
     fixedNo,
     level,
-    items,
+    items: newItems,
     itemWidth
   }
  
   return newState
 }
+
+// https://answers.microsoft.com/en-us/windows/forum/windows_7-desktop/how-to-slove-the-picture-puzzle/aff67a3b-1d23-451f-90de-acf9e63d5d10
+function shuffleList  (tileArray: any[]){
+  let hold = 0, i, ri = new Array(15);
+
+  for (i=0; i < 15; i++)
+    ri[i] = i;
+
+  for(let j=0; j<5; j++) {
+    ri.sort(function() {
+      return Math.random()-0.5;
+    });
+
+    for (i=0; i < 15; i+=3) {
+      hold = tileArray[ri[i]];
+      tileArray[ri[i]] = tileArray[ri[i+1]];
+      tileArray[ri[i+1]] = tileArray[ri[i+2]];
+      tileArray[ri[i+2]] = hold;
+    }
+  }
+}
+
+function shuffleItems(items: Items, rowCount: number, colCount: number) {
+  const length = rowCount * colCount 
+  let numbers = Array.from({ length }, (_, k) => k);
+
+  shuffleList(numbers)
+
+  numbers = numbers.filter(no => no !== undefined)
+
+  const positions = numbers.map((no) => {
+    return {
+      x:Math.floor(no / rowCount),
+      y: no % rowCount
+    }
+  })
+
+  const newItems: Items = []
+
+  for (let i = 0; i < rowCount; i++) {
+    newItems[i] = []
+
+    for (let j = 0; j < colCount; j++) {
+      const pos = positions[i * rowCount + j]
+
+      const item = items[pos['x']][pos['y']]
+      newItems[i][j] = item
+    }
+  }
+
+  return newItems  
+}
+
+
