@@ -164,7 +164,14 @@ const main = async () => {
 
   const audioEffect = new AudioEffect()
 
-  const pintuIns = new Pintu(img, audioEffect)
+  const pintuIns = new Pintu(img)
+
+  pintuIns.onMove = () => {
+    audioEffect.play()
+
+    const event = new Event('stepCount')
+    document.dispatchEvent(event)
+  }
 
   new Manager({
     actionMap: {

@@ -1,5 +1,3 @@
-import { AudioEffect } from "./app";
-
 const PADDING = 36
 
 const tableCount: any = {
@@ -123,11 +121,10 @@ export class Pintu {
 
   private state: PinState
 
-  private audioEffect: AudioEffect
+  onMove: (() => void) | null = null
 
-  constructor(img: HTMLImageElement, audioEffect: AudioEffect) {
+  constructor(img: HTMLImageElement) {
     this.img = img
-    this.audioEffect = audioEffect
 
     this.initialize()
     this.bindEvents()
@@ -231,8 +228,7 @@ export class Pintu {
     }
 
     if (run) {
-      this.audioEffect.play()
-      // this.control.recordStep()
+      if (this.onMove) this.onMove()
 
       this.draw()
 

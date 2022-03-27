@@ -2,6 +2,11 @@ type ActionType = 'level' | 'sound'
 
 const CONFIG = [
   {
+    key: 'stepCount',
+    value: 0,
+    label: '步数',
+  },
+  {
     key: 'level',
     value: 1,
     label: '难度',
@@ -34,7 +39,7 @@ const CONFIG = [
         label: '静音',
       },
     ],
-  }
+  },
 ]
 
 type Element = typeof CONFIG[number]
@@ -90,38 +95,47 @@ export class Manager {
     const value = document.createElement('span')
     value.innerText = element.value.toString()
 
-    const select = document.createElement('select')
-    select.setAttribute('name', element.key)
-    select.setAttribute('value', element.value + '')
-    
-    const action = this.actionMap[element.key as ActionType]
-    if (action) {
-      select.addEventListener('change', (e) => {
-        const currentElement = e.target as HTMLSelectElement
-
-        const valueElement = currentElement.previousElementSibling as HTMLSpanElement
-        valueElement.innerText = currentElement.value
-        
-        action(select.value)
-      })
-    }
-
-    for (const option of element.options) {
-      const optionElement = document.createElement('option')
-      optionElement.setAttribute('value', option.value + '')
-      optionElement.innerHTML = option.label
-      select.appendChild(optionElement)
-    }
-
     box.appendChild(
       label,
     )
     box.appendChild(
       value,
     )
-    box.appendChild(
-      select,
-    )
+
+    if (element.options) {
+      const select = document.createElement('select')
+      select.setAttribute('name', element.key)
+      select.setAttribute('value', element.value + '')
+      
+      const action = this.actionMap[element.key as ActionType]
+      if (action) {
+        select.addEventListener('change', (e) => {
+          const currentElement = e.target as HTMLSelectElement
+
+          const valueElement = currentElement.previousElementSibling as HTMLSpanElement
+          valueElement.innerText = currentElement.value
+          
+          action(select.value)
+        })
+      }
+
+      for (const option of element.options) {
+        const optionElement = document.createElement('option')
+        optionElement.setAttribute('value', option.value + '')
+        optionElement.innerHTML = option.label
+        select.appendChild(optionElement)
+      }
+
+      box.appendChild(
+        select,
+      )
+    } else {
+      document.addEventListener(element.key, (e) => {
+        const currentElement = e.target as HTMLSpanElement
+        console.log('stepCountChange', e);
+        console.log(currentElement);
+      })
+    }
 
     return box
   }
