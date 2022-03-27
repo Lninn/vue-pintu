@@ -110,6 +110,9 @@ const main = async () => {
             pintuIns.handleImageChange(img)
           }
         })
+      },
+      originalImage() {
+        pintuIns.handlePreviewImage()
       }
     },
   })

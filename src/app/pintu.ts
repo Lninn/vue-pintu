@@ -123,6 +123,8 @@ export class Pintu {
 
   private showNo: boolean = true
 
+  private isPreview: boolean = false
+
   onMove: (() => void) | null = null
 
   constructor(img: HTMLImageElement) {
@@ -342,6 +344,30 @@ export class Pintu {
     this.img = img
 
     this.draw()
+  }
+
+  public handlePreviewImage() {
+    this.isPreview = !this.isPreview
+
+    if (this.isPreview) {
+      const img = this.img
+      if (!img) return
+
+      const ctx= this.ctx
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        this.img.width,
+        this.img.height,
+        PADDING,
+        PADDING,
+        this.canvas.width - PADDING * 2,
+        this.canvas.height- PADDING * 2,
+      )
+    } else {
+      this.draw()
+    }
   }
 
   public getCanvas() {

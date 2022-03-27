@@ -1,4 +1,4 @@
-type ActionType = 'level' | 'sound' | 'stepCount' | 'restart' | 'showNo' | 'changeImage'
+type ActionType = 'level' | 'sound' | 'stepCount' | 'restart' | 'showNo' | 'changeImage' | 'originalImage'
 
 interface TextElement extends Pick<Object, 'hasOwnProperty'> {
   key: string
@@ -35,6 +35,10 @@ const CONFIG: Element[] = [
   {
     key: 'changeImage',
     label: '切换图片',
+  },
+  {
+    key: 'originalImage',
+    label: '原始图片',
   },
   {
     key: 'stepCount',
