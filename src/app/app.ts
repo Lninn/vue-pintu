@@ -196,7 +196,15 @@ const main = async () => {
       },
       stepCount() {
         console.log('stepCount');
-        
+      },
+      changeImage() {
+        const self = this as unknown as Manager
+
+        self.getImageFromLocalDevice().then((img: HTMLImageElement | null) => {
+          if (img) {
+            pintuIns.handleImageChange(img)
+          }
+        })
       }
     },
   })

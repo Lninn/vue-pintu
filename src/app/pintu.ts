@@ -344,6 +344,12 @@ export class Pintu {
     this.draw()
   }
 
+  public handleImageChange(img: HTMLImageElement) {
+    this.img = img
+
+    this.draw()
+  }
+
   public getCanvas() {
     return this.canvas
   }

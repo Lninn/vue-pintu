@@ -1,4 +1,4 @@
-type ActionType = 'level' | 'sound' | 'stepCount' | 'restart' | 'showNo'
+type ActionType = 'level' | 'sound' | 'stepCount' | 'restart' | 'showNo' | 'changeImage'
 
 interface TextElement extends Pick<Object, 'hasOwnProperty'> {
   key: string
@@ -31,6 +31,10 @@ const CONFIG: Element[] = [
   {
     key: 'showNo',
     label: '数字提示',
+  },
+  {
+    key: 'changeImage',
+    label: '切换图片',
   },
   {
     key: 'stepCount',
@@ -220,5 +224,39 @@ export class Manager {
   public clearLabelByKey(key: ActionType) {
     const target = document.querySelector(`[data-key="${key}"]`) as HTMLSpanElement
     target.innerText = '0'
+  }
+
+  public getImageFromLocalDevice() {
+    return new Promise<HTMLImageElement | null>((resolve) => {
+      const input = document.createElement('input')
+      input.type = 'file'
+
+      input.accept = 'image/*'
+
+      input.onchange = (e: any) => {
+        const file = e.target.files[0]
+        
+        const reader = new FileReader()
+        reader.onload = createImage;
+        reader.onerror = () => {
+          resolve(null)
+        }
+        reader.readAsDataURL(file);
+
+        function createImage() {
+          const img = new Image();
+          img.onload = () => {
+            resolve(img)
+          };
+          img.onerror = () => {
+            resolve(null)
+          }
+
+          img.src = reader.result as any;
+        }
+      }
+
+      input.click()
+    })
   }
 }
